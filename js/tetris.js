@@ -2,13 +2,8 @@ const canvas = document.getElementById('tetris');
 const context = canvas.getContext('2d');
 context.scale(20, 20); // Scale the canvas for easier drawing
 
-const nextCanvas = document.getElementById('swaped-piece');
-const nextContext = nextCanvas.getContext('2d');
-nextContext.scale(10, 10); // Scale the swaped-piece canvas for easier drawing
-
 let board = Array.from({ length: 20 }, () => Array(10).fill(0));
 let currentPiece;
-let nextPiece;
 let dropInterval = 1000;
 let lastTime = 0;
 let score = 0;
@@ -253,18 +248,6 @@ function drawPiece() {
   drawLuminaire(context, currentPiece);
 }
 
-// Function to draw the upcoming piece
-function drawNextPiece() {
-  nextContext.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
-  // Create a temporary piece object for the next piece preview
-  const previewPiece = {
-    ...nextPiece,
-    x: 0,
-    y: 0
-  };
-  drawLuminaire(nextContext, previewPiece);
-}
-
 // Function to draw the drop indicator (where the piece will land)
 function drawDropIndicator() {
   const dropPosition = getDropPosition();
@@ -318,28 +301,6 @@ function resetPiece() {
     y: 0,
     colorIndex: randomIndex + 1 // Color index corresponds to the piece
   };
-}
-
-// Function to reset the next piece
-function resetNextPiece() {
-  const randomIndex = Math.floor(Math.random() * pieces.length);
-  nextPiece = {
-    shape: pieces[randomIndex],
-    x: 0,
-    y: 0,
-    colorIndex: randomIndex + 1 // Color index corresponds to the piece
-  };
-  drawNextPiece(); // Draw the next piece on the right canvas
-}
-
-// Function to swap the current and next pieces
-function swapPiece() {
-  const temp = currentPiece;
-  currentPiece = nextPiece;
-  nextPiece = temp;
-  currentPiece.x = 3;
-  currentPiece.y = 0;
-  drawNextPiece(); // Draw the updated next piece after swap
 }
 
 // Function to check for collisions
@@ -769,7 +730,6 @@ function update(time = 0) {
   drawBoard();
   drawPiece();
   drawDropIndicator(); // Draw the drop indicator
-  drawNextPiece(); // Draw the next piece
   requestAnimationFrame(update);
 }
 
@@ -779,7 +739,6 @@ function resetGame() {
   placedPieces = []; // Clear all placed luminaire pieces
   score = 0; // Reset score
   resetPiece();
-  resetNextPiece(); // Initialize nextPiece
   lastTime = 0; // Reset lastTime to ensure the drop interval works correctly
   update();
 }
@@ -798,12 +757,10 @@ document.getElementById('restart').addEventListener('click', resetGame);
 // Start the game - load images first
 loadImages().then(() => {
   resetPiece();
-  resetNextPiece(); // Initialize the next piece
   update();
 }).catch((error) => {
   console.warn('Starting game with color fallback due to image loading issues');
   resetPiece();
-  resetNextPiece(); // Initialize the next piece
   update();
 });
 
@@ -845,7 +802,5 @@ document.addEventListener('keydown', (event) => {
     if (currentPiece) { // Ensure currentPiece is defined
       dropToBottom();
     }
-  } else if (event.key === 'c' || event.key === 'C') { // C key to swap blocks
-    swapPiece();
   }
 });
