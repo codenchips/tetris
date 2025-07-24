@@ -4,7 +4,8 @@ context.scale(20, 20); // Scale the canvas for easier drawing
 
 let board = Array.from({ length: 20 }, () => Array(10).fill(0));
 let currentPiece;
-let dropInterval = 1000;
+let dropInterval = 700;
+let speedIncreasePerLine = 20; // Speed increase per line cleared
 let lastTime = 0;
 let score = 0;
 let paused = false;  // Track the paused state
@@ -609,6 +610,12 @@ function clearLines() {
   }
   
   score += clearedLines.length * 1; // Update score
+  
+  // Increase difficulty by decreasing drop interval for each line cleared
+  // Decrease by 10ms per line cleared, with a minimum of 100ms
+  const speedIncrease = clearedLines.length * speedIncreasePerLine;
+  dropInterval = Math.max(100, dropInterval - speedIncrease);
+  console.log(`Speed increased! New drop interval: ${dropInterval}ms (decreased by ${speedIncrease}ms)`);
 }
 
 // Function to check if any new complete lines were formed after gravity
@@ -738,6 +745,7 @@ function resetGame() {
   board = Array.from({ length: 20 }, () => Array(10).fill(0));
   placedPieces = []; // Clear all placed luminaire pieces
   score = 0; // Reset score
+  dropInterval = 700; // Reset drop interval to starting speed
   resetPiece();
   lastTime = 0; // Reset lastTime to ensure the drop interval works correctly
   update();
