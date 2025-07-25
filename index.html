@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tetris Game</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=2">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>    
     
 </head>
@@ -12,26 +13,41 @@
   <!-- Flex container for the game area (canvas) and the score -->
   <div class="game-area">
     <div class="game-container">
+
+
+      <div class="score-container">
+        <p id="score">Score: 0</p>
+      </div>      
       <canvas id="tetris" width="200" height="400"></canvas> <!-- Main game canvas -->
+      
+      <!-- Mobile Controls -->
+      <div class="mobile-controls">
+        <!-- Movement Controls -->
+        <div class="movement-controls">
+          <button id="move-left" class="control-btn"><i class="fas fa-chevron-left"></i></button>
+          <button id="move-down" class="control-btn"><i class="fas fa-chevron-down"></i></button>
+          <button id="move-right" class="control-btn"><i class="fas fa-chevron-right"></i></button>
+        </div>
+        
+        <!-- Action Controls -->
+        <div class="action-controls">
+          <button id="rotate" class="control-btn"><i class="fas fa-redo"></i></button>
+          <button id="drop" class="control-btn"><i class="fas fa-angle-double-down"></i></button>
+        </div>
+      </div>
     </div>
 
   </div>
-
-    <!-- Score container on the right -->
-    <div class="score-container">
-      <p id="score">0</p>
-    </div>  
-    <button id="pause">Pause</button>
-    <button id="restart">Restart Game</button>
+  
+  <!-- Game Control Buttons -->
+  <div class="game-controls">
+    <button id="pause" class="control-btn"><i class="fas fa-pause"></i></button>
+    <button id="restart" class="control-btn"><i class="fas fa-sync-alt"></i></button>
+  </div>
     
   
   
-    <script>
-        $(document).ready(function() {
-
-        });
-    </script>
-    <script src="js/tetris.js"></script>
+    <script src="js/tetris.js?v=3"></script>
 </body>
 </html>
 

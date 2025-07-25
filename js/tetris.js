@@ -1,4 +1,4 @@
-const canvas = document.getElementById('tetris');
+const canvas = $('#tetris')[0];
 const context = canvas.getContext('2d');
 context.scale(20, 20); // Scale the canvas for easier drawing
 
@@ -49,7 +49,7 @@ function loadImages() {
           resolve();
         };
         img.onerror = (error) => {
-          console.warn(`Failed to load image ${url}, will use color fallback`);
+          GameUtils.showNotification(`Failed to load image ${url}, will use color fallback`, 'warning');
           resolve(); // Continue even if image fails to load
         };
         img.src = url;
@@ -57,9 +57,9 @@ function loadImages() {
     })
   ).then(() => {
     imagesLoaded = true;
-    console.log('Luminaire images loaded successfully');
+    GameUtils.showNotification('Luminaire images loaded successfully', 'success');
   }).catch((error) => {
-    console.warn('Some images failed to load, using color fallback');
+    GameUtils.showNotification('Some images failed to load, using color fallback', 'warning');
     imagesLoaded = false;
   });
 }
@@ -264,8 +264,8 @@ function drawDropIndicator() {
 
 // Update the score display in the DOM
 function drawScore() {
-  // Update the HTML score element instead of drawing it on the canvas
-  document.getElementById('score').textContent = `Score: ${score}`;
+  // Update the HTML score element using jQuery
+  $('#score').text(`Score: ${score}`);
 }
 
 // Function to merge the piece with the board
@@ -339,8 +339,7 @@ function drop() {
     clearLines();
     resetPiece();
     if (collide()) {
-      alert("Game Over!");
-      resetGame();
+      showGameOver();
     }
   }
 }
@@ -355,8 +354,7 @@ function dropToBottom() {
   clearLines();
   resetPiece();
   if (collide()) {
-    alert("Game Over!");
-    resetGame();
+    showGameOver();
   }
 }
 
@@ -482,27 +480,27 @@ function clearLines() {
   
   if (clearedLines.length === 0) return; // No lines to clear
   
-  console.log('Lines to clear:', clearedLines);
-  console.log('Board before clearing:', board.map((row, i) => `${i}: [${row.join(',')}]`).join('\n'));
-  console.log('Placed pieces before clearing:', placedPieces.map(p => `Piece ${p.colorIndex} at (${p.x},${p.y}) rotation:${p.rotation} shape:${JSON.stringify(p.shape)}`));
+  GameUtils.logGameState('Lines to clear:', clearedLines)
+    .logGameState('Board before clearing:', board.map((row, i) => `${i}: [${row.join(',')}]`).join('\n'))
+    .logGameState('Placed pieces before clearing:', placedPieces.map(p => `Piece ${p.colorIndex} at (${p.x},${p.y}) rotation:${p.rotation} shape:${JSON.stringify(p.shape)}`));
   
   // Remove complete lines from the board
   // Sort in descending order to remove from bottom to top
   clearedLines.sort((a, b) => b - a);
   clearedLines.forEach(lineY => {
-    console.log('Removing line at Y:', lineY);
+    GameUtils.logGameState('Removing line at Y:', lineY);
     board.splice(lineY, 1);
     board.unshift(Array(10).fill(0)); // Add a new empty row at the top
   });
   
-  console.log('Board after line removal:', board.map((row, i) => `${i}: [${row.join(',')}]`).join('\n'));
+  GameUtils.logGameState('Board after line removal:', board.map((row, i) => `${i}: [${row.join(',')}]`).join('\n'));
   
   // Update placed pieces based on cleared lines
   placedPieces = placedPieces.filter(piece => {
     let pieceAffected = false;
     let newShape = [...piece.shape.map(row => [...row])]; // Deep copy
     
-    console.log(`Processing piece ${piece.colorIndex} at (${piece.x},${piece.y})`);
+    GameUtils.logGameState(`Processing piece ${piece.colorIndex} at (${piece.x},${piece.y})`);
     
     // Check each cleared line
     clearedLines.forEach(clearedY => {
@@ -514,11 +512,11 @@ function clearLines() {
             const boardY = piece.y + py;
             const boardX = piece.x + px;
             
-            console.log(`  Block at piece(${px},${py}) -> board(${boardX},${boardY}), cleared line: ${clearedY}`);
+            GameUtils.logGameState(`  Block at piece(${px},${py}) -> board(${boardX},${boardY}), cleared line: ${clearedY}`);
             
             // Check if this block is on a cleared line
             if (boardY === clearedY) {
-              console.log(`    Removing block at (${px},${py}) from piece`);
+              GameUtils.logGameState(`    Removing block at (${px},${py}) from piece`);
               newShape[py][px] = 0; // Remove this block
               pieceAffected = true;
             }
@@ -528,33 +526,33 @@ function clearLines() {
     });
     
     if (pieceAffected) {
-      console.log(`  Piece affected. New shape:`, newShape);
+      GameUtils.logGameState(`  Piece affected. New shape:`, newShape);
       
       // Clean up the shape by removing empty rows and ensuring consistency
       const compactedShape = compactPieceShape(newShape);
-      console.log(`  Compacted shape:`, compactedShape);
+      GameUtils.logGameState(`  Compacted shape:`, compactedShape);
       
       // If piece still has blocks, check for structural integrity
       if (compactedShape.length > 0 && compactedShape.some(row => row.some(value => value !== 0))) {
         // Find connected components in the modified piece
         const components = findConnectedComponents(compactedShape, piece.colorIndex);
-        console.log(`  Found ${components.length} connected components in modified piece`);
+        GameUtils.logGameState(`  Found ${components.length} connected components in modified piece`);
         
         if (components.length === 1) {
           // Single connected piece - just update it
           piece.shape = compactedShape;
           piece.isModified = true;
-          console.log(`  Piece remains structurally intact, marked as modified`);
+          GameUtils.logGameState(`  Piece remains structurally intact, marked as modified`);
         } else if (components.length > 1) {
           // Multiple disconnected components - split into separate pieces
-          console.log(`  Piece split into ${components.length} separate components`);
+          GameUtils.logGameState(`  Piece split into ${components.length} separate components`);
           
           // Create new pieces for each component (except the first one)
           for (let i = 1; i < components.length; i++) {
             const newPiece = createPieceFromComponent(components[i], piece);
             if (newPiece) {
               placedPieces.push(newPiece);
-              console.log(`    Created new piece at (${newPiece.x},${newPiece.y}) with shape:`, newPiece.shape);
+              GameUtils.logGameState(`    Created new piece at (${newPiece.x},${newPiece.y}) with shape:`, newPiece.shape);
             }
           }
           
@@ -568,19 +566,19 @@ function clearLines() {
             piece.x = largestPiece.x;
             piece.y = largestPiece.y;
             piece.isModified = true;
-            console.log(`    Updated original piece to largest component at (${piece.x},${piece.y})`);
+            GameUtils.logGameState(`    Updated original piece to largest component at (${piece.x},${piece.y})`);
           } else {
-            console.log(`    Original piece completely removed`);
+            GameUtils.logGameState(`    Original piece completely removed`);
             return false;
           }
         } else {
           // No components found - piece is completely gone
-          console.log(`  Piece completely removed`);
+          GameUtils.logGameState(`  Piece completely removed`);
           return false;
         }
       } else {
         // Piece is completely gone
-        console.log(`  Piece completely removed`);
+        GameUtils.logGameState(`  Piece completely removed`);
         return false;
       }
     }
@@ -589,13 +587,13 @@ function clearLines() {
     // Only pieces that are entirely above cleared lines should move down
     const pieceTop = piece.y;
     const linesAbove = clearedLines.filter(clearedY => clearedY > pieceTop + (piece.shape.length - 1)).length;
-    console.log(`  Piece spans Y: ${pieceTop} to ${pieceTop + piece.shape.length - 1}, lines cleared above piece: ${linesAbove}`);
+    GameUtils.logGameState(`  Piece spans Y: ${pieceTop} to ${pieceTop + piece.shape.length - 1}, lines cleared above piece: ${linesAbove}`);
     piece.y += linesAbove;
     
     return true;
   });
   
-  console.log('Placed pieces after processing:', placedPieces.map(p => `Piece ${p.colorIndex} at (${p.x},${p.y}) rotation:${p.rotation} shape:${JSON.stringify(p.shape)}`));
+  GameUtils.logGameState('Placed pieces after processing:', placedPieces.map(p => `Piece ${p.colorIndex} at (${p.x},${p.y}) rotation:${p.rotation} shape:${JSON.stringify(p.shape)}`));
   
   // Apply gravity to all remaining pieces after line clearing
   applyGravityToPieces();
@@ -604,7 +602,7 @@ function clearLines() {
   // This creates a cascading effect when separated blocks form new complete lines
   const additionalLines = checkForNewCompleteLines();
   if (additionalLines.length > 0) {
-    console.log('Additional lines formed after gravity:', additionalLines);
+    GameUtils.logGameState('Additional lines formed after gravity:', additionalLines);
     // Recursively clear any new lines formed
     clearLines();
   }
@@ -615,7 +613,8 @@ function clearLines() {
   // Decrease by 10ms per line cleared, with a minimum of 100ms
   const speedIncrease = clearedLines.length * speedIncreasePerLine;
   dropInterval = Math.max(100, dropInterval - speedIncrease);
-  console.log(`Speed increased! New drop interval: ${dropInterval}ms (decreased by ${speedIncrease}ms)`);
+  GameUtils.logGameState(`Speed increased! New drop interval: ${dropInterval}ms (decreased by ${speedIncrease}ms)`)
+    .updateUI(); // Update the UI with new score
 }
 
 // Function to check if any new complete lines were formed after gravity
@@ -633,7 +632,7 @@ function checkForNewCompleteLines() {
 
 // Function to apply gravity to all placed pieces
 function applyGravityToPieces() {
-  console.log('Applying gravity to pieces...');
+  GameUtils.logGameState('Applying gravity to pieces...');
   let pieceMoved = true;
   let iterations = 0;
   const maxIterations = 50; // Prevent infinite loops
@@ -642,7 +641,7 @@ function applyGravityToPieces() {
   while (pieceMoved && iterations < maxIterations) {
     pieceMoved = false;
     iterations++;
-    console.log(`Gravity iteration ${iterations}`);
+    GameUtils.logGameState(`Gravity iteration ${iterations}`);
     
     // Sort pieces by their bottom position (highest y values first)
     // This ensures we process pieces from bottom to top
@@ -697,7 +696,7 @@ function applyGravityToPieces() {
       if (canMoveDown) {
         piece.y += 1;
         pieceMoved = true;
-        console.log(`  Piece ${piece.colorIndex} moved down to (${piece.x},${piece.y})`);
+        GameUtils.logGameState(`  Piece ${piece.colorIndex} moved down to (${piece.x},${piece.y})`);
       }
     }
     
@@ -721,10 +720,10 @@ function applyGravityToPieces() {
   }
   
   if (iterations >= maxIterations) {
-    console.warn('Gravity application reached maximum iterations, stopping to prevent infinite loop');
+    GameUtils.showNotification('Gravity application reached maximum iterations, stopping to prevent infinite loop', 'warning');
   }
   
-  console.log('Gravity application complete after', iterations, 'iterations');
+  GameUtils.logGameState('Gravity application complete after', iterations, 'iterations');
 }
 
 // Function to update the game
@@ -751,28 +750,103 @@ function resetGame() {
   update();
 }
 
-// Toggle pause state when the pause button is clicked
-document.getElementById('pause').addEventListener('click', () => {
-  paused = !paused;
-  if (!paused) {
-    update();  // Restart the game loop if unpaused
+// Start the game - load images first using jQuery patterns
+$(document).ready(function() {
+  // Initialize the game
+  loadImages().then(() => {
+    resetPiece();
+    update();
+    GameUtils.showNotification('Game started successfully!', 'success');
+  }).catch((error) => {
+    GameUtils.showNotification('Starting game with color fallback due to image loading issues', 'warning');
+    resetPiece();
+    update();
+  });
+  
+  // Mobile touch controls - prevent default touch behavior and add click handlers
+  $('.control-btn').on('touchstart click', function(e) {
+    e.preventDefault();
+    if (paused && this.id !== 'pause' && this.id !== 'restart') return; // Only allow pause/restart when paused
+    
+    const buttonId = this.id;
+    
+    switch(buttonId) {
+      case 'move-left':
+        movePiece(-1);
+        break;
+      case 'move-right':
+        movePiece(1);
+        break;
+      case 'move-down':
+        drop();
+        break;
+      case 'rotate':
+        rotatePiece();
+        break;
+      case 'drop':
+        if (currentPiece) {
+          dropToBottom();
+        }
+        break;
+      case 'pause':
+        paused = !paused;
+        if (!paused) {
+          update();
+        }
+        // Update pause button icon
+        $(this).find('i').toggleClass('fa-pause fa-play');
+        break;
+      case 'restart':
+        resetGame();
+        // Reset pause button icon
+        $('#pause').find('i').removeClass('fa-play').addClass('fa-pause');
+        break;
+    }
+  });
+  
+  // Add visual feedback for button presses
+  $('.control-btn').on('touchstart mousedown', function() {
+    $(this).addClass('pressed');
+  });
+  
+  $('.control-btn').on('touchend mouseup mouseleave', function() {
+    $(this).removeClass('pressed');
+  });
+});
+
+// jQuery utility functions for the game
+const GameUtils = {
+  // Log game state with jQuery-style chaining
+  logGameState: function(message, data) {
+    if (typeof data !== 'undefined') {
+      console.log(message, data);
+    } else {
+      console.log(message);
+    }
+    return this; // Enable chaining
+  },
+  
+  // Update UI elements with jQuery
+  updateUI: function() {
+    $('#score').text(`Score: ${score}`);
+    return this;
+  },
+  
+  // Show notifications (could be enhanced with jQuery UI)
+  showNotification: function(message, type = 'info') {
+    console.log(`[${type.toUpperCase()}] ${message}`);
+    // Future enhancement: Could show toast notifications with jQuery
+    return this;
   }
-});
+};
 
-// Restart button functionality
-document.getElementById('restart').addEventListener('click', resetGame);
-
-// Start the game - load images first
-loadImages().then(() => {
-  resetPiece();
-  update();
-}).catch((error) => {
-  console.warn('Starting game with color fallback due to image loading issues');
-  resetPiece();
-  update();
-});
-
-// Function to rotate the piece counterclockwise
+// Function to show game over message using jQuery
+function showGameOver() {
+  // You could create a custom modal here instead of alert
+  // For now, keeping the alert but could be enhanced with jQuery UI or custom modal
+  alert("Game Over!");
+  resetGame();
+}
 function rotatePieceCounterclockwise() {
   const originalShape = currentPiece.shape;
   currentPiece.shape = currentPiece.shape[0].map((_, index) => currentPiece.shape.map(row => row[originalShape[0].length - 1 - index]));
@@ -790,8 +864,8 @@ function rotatePiece180() {
   }
 }
 
-// Keyboard controls (only allow input if not paused)
-document.addEventListener('keydown', (event) => {
+// Keyboard controls (only allow input if not paused) - using jQuery
+$(document).on('keydown', function(event) {
   if (paused) return; // Ignore input if game is paused
 
   if (event.key === 'ArrowLeft' || event.key === 'a' || event.key === 'A') {
