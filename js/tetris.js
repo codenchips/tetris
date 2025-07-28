@@ -9,6 +9,10 @@ let speedIncreasePerLine = 20; // Speed increase per line cleared
 let lastTime = 0;
 let score = 0;
 let paused = false;  // Track the paused state
+let gameStarted = false; // Track if the game has been started
+let gameStartTime = null; // When the game was started
+let gameElapsedTime = 0; // Total elapsed time in milliseconds
+let timerInterval = null; // Timer update interval
 
 // Define colors for each Tetrimino (fallback)
 const colors = [
@@ -291,6 +295,10 @@ function merge() {
       }
     });
   });
+  
+  // Award 1 point for placing a piece
+  score += 1;
+  GameUtils.logGameState('Piece placed! +1 point. Score:', score);
 }
 
 // Function to reset the current piece
@@ -346,10 +354,22 @@ function drop() {
 
 // Function to drop the piece to the bottom
 function dropToBottom() {
+  const startingY = currentPiece.y; // Record starting position
+  
   while (!collide()) {
     currentPiece.y++;
   }
   currentPiece.y--; // Move back up one space
+  
+  // Calculate drop height and award bonus points
+  const dropHeight = currentPiece.y - startingY;
+  const heightBonus = Math.round(dropHeight / 4);
+  
+  if (heightBonus > 0) {
+    score += heightBonus;
+    GameUtils.logGameState(`Piece dropped ${dropHeight} lines! Height bonus: +${heightBonus} points. Score:`, score);
+  }
+  
   merge();
   clearLines();
   resetPiece();
@@ -607,7 +627,27 @@ function clearLines() {
     clearLines();
   }
   
-  score += clearedLines.length * 1; // Update score
+  // Calculate points based on number of lines cleared simultaneously
+  let pointsEarned = 0;
+  switch(clearedLines.length) {
+    case 1:
+      pointsEarned = 10;
+      break;
+    case 2:
+      pointsEarned = 25;
+      break;
+    case 3:
+      pointsEarned = 40;
+      break;
+    case 4:
+      pointsEarned = 60;
+      break;
+    default:
+      pointsEarned = 0;
+  }
+  
+  score += pointsEarned;
+  GameUtils.logGameState(`Lines cleared: ${clearedLines.length}, Points earned: ${pointsEarned}, Total score: ${score}`);
   
   // Increase difficulty by decreasing drop interval for each line cleared
   // Decrease by 10ms per line cleared, with a minimum of 100ms
@@ -728,7 +768,7 @@ function applyGravityToPieces() {
 
 // Function to update the game
 function update(time = 0) {
-  if (paused) return; // If the game is paused, stop the game loop
+  if (paused || !gameStarted) return; // If the game is paused or not started, stop the game loop
   if (time - lastTime > dropInterval) {
     drop();
     lastTime = time;
@@ -747,28 +787,63 @@ function resetGame() {
   dropInterval = 700; // Reset drop interval to starting speed
   resetPiece();
   lastTime = 0; // Reset lastTime to ensure the drop interval works correctly
-  update();
+  paused = false;
+  GameUtils.resetTimer().updateUI();
+  
+  // Reset start button
+  $('#start').prop('disabled', false)
+    .html('<i class="fas fa-play"></i> Start Game');
+  
+  // Only start update loop if game has been started
+  if (gameStarted) {
+    update();
+  }
 }
 
 // Start the game - load images first using jQuery patterns
 $(document).ready(function() {
-  // Initialize the game
+  // Initialize the game but don't start it
   loadImages().then(() => {
     resetPiece();
-    update();
-    GameUtils.showNotification('Game started successfully!', 'success');
+    GameUtils.showNotification('Game ready! Click Start to begin.', 'success');
+    // Draw initial state without starting the game loop
+    drawBoard();
+    drawPiece();
   }).catch((error) => {
-    GameUtils.showNotification('Starting game with color fallback due to image loading issues', 'warning');
+    GameUtils.showNotification('Game ready with color fallback! Click Start to begin.', 'warning');
     resetPiece();
-    update();
+    // Draw initial state without starting the game loop
+    drawBoard();
+    drawPiece();
+  });
+  
+  // Start button functionality
+  $('#start').on('click', function() {
+    if (!gameStarted) {
+      gameStarted = true;
+      GameUtils.startTimer();
+      update(); // Start the game loop
+      $(this).prop('disabled', true)
+        .html('<i class="fas fa-check"></i> Started');
+      GameUtils.showNotification('Game started! Good luck!', 'success');
+    }
   });
   
   // Mobile touch controls - prevent default touch behavior and add click handlers
   $('.control-btn').on('touchstart click', function(e) {
     e.preventDefault();
-    if (paused && this.id !== 'pause' && this.id !== 'restart') return; // Only allow pause/restart when paused
     
     const buttonId = this.id;
+    
+    // Handle start button separately
+    if (buttonId === 'start') {
+      return; // Let the click handler above handle it
+    }
+    
+    // Only allow game controls if game has started
+    if (!gameStarted && buttonId !== 'restart') return;
+    
+    if (paused && buttonId !== 'pause' && buttonId !== 'restart') return; // Only allow pause/restart when paused
     
     switch(buttonId) {
       case 'move-left':
@@ -789,12 +864,19 @@ $(document).ready(function() {
         }
         break;
       case 'pause':
-        paused = !paused;
-        if (!paused) {
-          update();
+        if (gameStarted) {
+          paused = !paused;
+          if (paused) {
+            GameUtils.stopTimer();
+          } else {
+            // Resume timer
+            gameStartTime = Date.now() - gameElapsedTime;
+            timerInterval = setInterval(() => GameUtils.updateTimer(), 10);
+            update();
+          }
+          // Update pause button icon
+          $(this).find('i').toggleClass('fa-pause fa-play');
         }
-        // Update pause button icon
-        $(this).find('i').toggleClass('fa-pause fa-play');
         break;
       case 'restart':
         resetGame();
@@ -813,6 +895,7 @@ $(document).ready(function() {
     $(this).removeClass('pressed');
   });
 });
+
 
 // jQuery utility functions for the game
 const GameUtils = {
@@ -837,14 +920,64 @@ const GameUtils = {
     console.log(`[${type.toUpperCase()}] ${message}`);
     // Future enhancement: Could show toast notifications with jQuery
     return this;
+  },
+  
+  // Timer functions
+  startTimer: function() {
+    gameStartTime = Date.now();
+    this.updateTimer();
+    timerInterval = setInterval(() => this.updateTimer(), 10); // Update every 10ms for hundredths
+    this.logGameState('Game timer started');
+    return this;
+  },
+  
+  stopTimer: function() {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      this.logGameState('Game timer stopped');
+    }
+    return this;
+  },
+  
+  resetTimer: function() {
+    this.stopTimer();
+    gameStarted = false;
+    gameStartTime = null;
+    gameElapsedTime = 0;
+    $('#timer').text('Time: 00:00.00');
+    return this;
+  },
+  
+  updateTimer: function() {
+    if (gameStartTime && !paused) {
+      gameElapsedTime = Date.now() - gameStartTime;
+      const totalSeconds = Math.floor(gameElapsedTime / 1000);
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      const hundredths = Math.floor((gameElapsedTime % 1000) / 10);
+      
+      const timeString = `Time: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${hundredths.toString().padStart(2, '0')}`;
+      $('#timer').text(timeString);
+    }
+    return this;
   }
 };
 
 // Function to show game over message using jQuery
 function showGameOver() {
+  // Stop the timer when game ends
+  GameUtils.stopTimer();
+  
+  // Calculate final time for display
+  const finalMinutes = Math.floor(gameElapsedTime / 60000);
+  const finalSeconds = Math.floor((gameElapsedTime % 60000) / 1000);
+  const finalHundredths = Math.floor((gameElapsedTime % 1000) / 10);
+  const finalTimeString = `${finalMinutes.toString().padStart(2, '0')}:${finalSeconds.toString().padStart(2, '0')}.${finalHundredths.toString().padStart(2, '0')}`;
+  
   // You could create a custom modal here instead of alert
   // For now, keeping the alert but could be enhanced with jQuery UI or custom modal
-  alert("Game Over!");
+  alert(`Game Over!\nFinal Score: ${score}\nTime: ${finalTimeString}`);
   resetGame();
 }
 function rotatePieceCounterclockwise() {
@@ -866,7 +999,7 @@ function rotatePiece180() {
 
 // Keyboard controls (only allow input if not paused) - using jQuery
 $(document).on('keydown', function(event) {
-  if (paused) return; // Ignore input if game is paused
+  if (!gameStarted || paused) return; // Ignore input if game hasn't started or is paused
 
   if (event.key === 'ArrowLeft' || event.key === 'a' || event.key === 'A') {
     movePiece(-1);  // Move left
@@ -876,10 +1009,6 @@ $(document).on('keydown', function(event) {
     drop();  // Move down
   } else if (event.key === 'ArrowUp' || event.key === 'w' || event.key === 'W') {
     rotatePiece();  // Rotate piece clockwise
-  } else if (event.key === '3') { // '3' key to rotate counterclockwise
-    rotatePieceCounterclockwise();
-  } else if (event.key === '4') { // '4' key to rotate 180 degrees
-    rotatePiece180();
   } else if (event.key === ' ') { // Space bar to drop piece to the bottom
     if (currentPiece) { // Ensure currentPiece is defined
       dropToBottom();
