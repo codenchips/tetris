@@ -800,101 +800,7 @@ function resetGame() {
   }
 }
 
-// Start the game - load images first using jQuery patterns
-$(document).ready(function() {
-  // Initialize the game but don't start it
-  loadImages().then(() => {
-    resetPiece();
-    GameUtils.showNotification('Game ready! Click Start to begin.', 'success');
-    // Draw initial state without starting the game loop
-    drawBoard();
-    drawPiece();
-  }).catch((error) => {
-    GameUtils.showNotification('Game ready with color fallback! Click Start to begin.', 'warning');
-    resetPiece();
-    // Draw initial state without starting the game loop
-    drawBoard();
-    drawPiece();
-  });
-  
-  // Start button functionality
-  $('#start').on('click', function() {
-    if (!gameStarted) {
-      gameStarted = true;
-      GameUtils.startTimer();
-      update(); // Start the game loop
-      $(this).prop('disabled', true)
-        .html('<i class="fas fa-check"></i> Started');
-      GameUtils.showNotification('Game started! Good luck!', 'success');
-    }
-  });
-  
-  // Mobile touch controls - prevent default touch behavior and add click handlers
-  $('.control-btn').on('touchstart click', function(e) {
-    e.preventDefault();
-    
-    const buttonId = this.id;
-    
-    // Handle start button separately
-    if (buttonId === 'start') {
-      return; // Let the click handler above handle it
-    }
-    
-    // Only allow game controls if game has started
-    if (!gameStarted && buttonId !== 'restart') return;
-    
-    if (paused && buttonId !== 'pause' && buttonId !== 'restart') return; // Only allow pause/restart when paused
-    
-    switch(buttonId) {
-      case 'move-left':
-        movePiece(-1);
-        break;
-      case 'move-right':
-        movePiece(1);
-        break;
-      case 'move-down':
-        drop();
-        break;
-      case 'rotate':
-        rotatePiece();
-        break;
-      case 'drop':
-        if (currentPiece) {
-          dropToBottom();
-        }
-        break;
-      case 'pause':
-        if (gameStarted) {
-          paused = !paused;
-          if (paused) {
-            GameUtils.stopTimer();
-          } else {
-            // Resume timer
-            gameStartTime = Date.now() - gameElapsedTime;
-            timerInterval = setInterval(() => GameUtils.updateTimer(), 10);
-            update();
-          }
-          // Update pause button icon
-          $(this).find('i').toggleClass('fa-pause fa-play');
-        }
-        break;
-      case 'restart':
-        resetGame();
-        // Reset pause button icon
-        $('#pause').find('i').removeClass('fa-play').addClass('fa-pause');
-        break;
-    }
-  });
-  
-  // Add visual feedback for button presses
-  $('.control-btn').on('touchstart mousedown', function() {
-    $(this).addClass('pressed');
-  });
-  
-  $('.control-btn').on('touchend mouseup mouseleave', function() {
-    $(this).removeClass('pressed');
-  });
-});
+
 
 
 // jQuery utility functions for the game
@@ -964,8 +870,66 @@ const GameUtils = {
   }
 };
 
+// Global functions for modal interactions
+async function getName() {
+  return new Promise((resolve) => {
+    $('#form-get-name').off('submit').on('submit', function(e) {
+      e.preventDefault();
+      let firstname = $('#form_firstname').val();
+      let lastname = $('#form_lastname').val();
+      let branch = $('#form_branch').val();
+      let email = $('#player_email').val();
+      if (firstname && lastname && branch && email) {        
+        UIkit.modal('#enter-name-modal').hide();
+        resolve(`${firstname}|${lastname}|${branch}|${email}`);
+        //resolve(firstname);
+      }
+    });     
+    setTimeout(function() {
+      UIkit.modal('#enter-name-modal', { stack : true }).show();
+      $('#form_name').val("").focus();
+    }, 1000);
+  });
+}
+
+async function getEmail() {
+  return new Promise((resolve) => {
+    $('#form-get-email').off('submit').on('submit', function(e) {
+      e.preventDefault();
+      let email = $('#form_email').val();
+      if (email) {        
+
+        // has email already been used?
+        $.ajax({
+          url: 'https://sst.tamlite.co.uk/api/darts_check_email',
+          type: 'POST',
+          data: { email: email },
+          success: function(data) {
+            data = JSON.parse(data);
+            console.log(data);
+            if (data.success == '1') {                
+              $('#email_error').html("Sorry, this email address has already been entered in the competition.").show();;
+              $('#form_email').val("").focus();
+              resolve(false);
+            } else {
+              // save the email
+              $('#player_email').val(email);
+              UIkit.modal('#enter-email-modal').hide();
+              resolve(email);
+            }
+          }
+        });
+
+      }
+    });     
+    UIkit.modal('#enter-email-modal', { stack : true }).show();
+    $('#email_error').empty();
+    $('#form_email').val("").focus();
+  });
+}
+
 // Function to show game over message using jQuery
-function showGameOver() {
+async function showGameOver() {
   // Stop the timer when game ends
   GameUtils.stopTimer();
   
@@ -975,11 +939,81 @@ function showGameOver() {
   const finalHundredths = Math.floor((gameElapsedTime % 1000) / 10);
   const finalTimeString = `${finalMinutes.toString().padStart(2, '0')}:${finalSeconds.toString().padStart(2, '0')}.${finalHundredths.toString().padStart(2, '0')}`;
   
+  
   // You could create a custom modal here instead of alert
   // For now, keeping the alert but could be enhanced with jQuery UI or custom modal
-  alert(`Game Over!\nFinal Score: ${score}\nTime: ${finalTimeString}`);
-  resetGame();
+  
+resetGame();
+    var game_mode = $('#game_mode').val();
+    if (game_mode == 'compete') {
+        
+      name = await getName();
+      while (!name) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+
+      alert(`Game Over!\nFinal Score: ${score}\nTime: ${finalTimeString}`);
+      
+
+      // save the score
+      saveScore(score, name, gameElapsedTime); 
+      // get the scores
+      setTimeout(function() {
+        getScores(); // Refresh the scores
+      },1000);
+    }
+
+
+  
 }
+
+  function renderScores(scores) {
+    console.log('render scores', scores);
+    // Render the scores on the screen
+    if (scores) {
+      $('#score-list').empty();
+      scores.forEach(function(score) {
+        console.log(score.score);
+        $('#scoreboard-body').append('<tr><td>' + score.score + '</td><td>' + score.firstname + ' ' + score.lastname.charAt(0) + '</td><td>' + score.time + '</td></tr>');
+      });
+    }     
+  }
+
+  function updateScoreBoard(score, name, time) {
+    // Show the score and elapsed time on the screen
+    $('#scores').append('<p>UNUSED' + score + ' - ' + name + ' (' + time + 's)</p>');
+  }
+
+  function getScores() {
+    // save the score to the database
+    $.ajax({
+      url: 'https://sst.tamlite.co.uk/api/darts_get_scores',
+      type: 'POST',
+      data: { },
+      success: function(data) {        
+        scores = JSON.parse(data);
+        renderScores(scores.scores);        
+      }
+    });
+  }
+
+
+  function saveScore(score, name, time) {
+    // save the score and elapsed time to the database
+    $.ajax({
+      url: 'https://sst.tamlite.co.uk/api/darts_save_score',
+      type: 'POST',
+      data: { score: score, name: name, time: time },
+      success: function(data) {
+        console.log(data);
+      }
+    });
+  }
+
+
+
+
+
 function rotatePieceCounterclockwise() {
   const originalShape = currentPiece.shape;
   currentPiece.shape = currentPiece.shape[0].map((_, index) => currentPiece.shape.map(row => row[originalShape[0].length - 1 - index]));
@@ -1015,3 +1049,115 @@ $(document).on('keydown', function(event) {
     }
   }
 });
+
+
+// Start the game - load images first using jQuery patterns
+$(document).ready(function() {
+
+
+  // Initialize the game but don't start it
+  loadImages().then(() => {
+    resetPiece();
+    GameUtils.showNotification('Game ready! Click Start to begin.', 'success');
+    // Draw initial state without starting the game loop
+    drawBoard();
+    drawPiece();
+  }).catch((error) => {
+    GameUtils.showNotification('Game ready with color fallback! Click Start to begin.', 'warning');
+    resetPiece();
+    // Draw initial state without starting the game loop
+    drawBoard();
+    drawPiece();
+  });
+  
+
+  
+  // Mobile touch controls - prevent default touch behavior and add click handlers
+  $('.control-btn').on('touchstart click', async function(e) {
+    e.preventDefault();
+    
+    const buttonId = this.id;
+    
+    
+
+    // Only allow game controls if game has started
+    //if (!gameStarted && buttonId !== 'restart') return;
+    
+    if (paused && buttonId !== 'pause' && buttonId !== 'restart') return; // Only allow pause/restart when paused
+
+    console.log('Button clicked:', buttonId);
+    
+    switch(buttonId) {
+      case 'start':
+        if (!gameStarted) {
+          console.log('Start button clicked', gameStarted);
+          email = $('#player_email').val();
+          if (!email) {
+            email = await getEmail();
+            while (!email) {
+              await new Promise(resolve => setTimeout(resolve, 100));
+            }
+          }
+
+
+          gameStarted = true;
+          GameUtils.startTimer();
+          update(); // Start the game loop
+          $(this).prop('disabled', true)
+            .html('<i class="fas fa-check"></i> Started');
+          GameUtils.showNotification('Game started! Good luck!', 'success');
+        }
+        break;        
+      case 'move-left':
+        movePiece(-1);
+        break;
+      case 'move-right':
+        movePiece(1);
+        break;
+      case 'move-down':
+        drop();
+        break;
+      case 'rotate':
+        rotatePiece();
+        break;
+      case 'drop':
+        if (currentPiece) {
+          dropToBottom();
+        }
+        break;
+      case 'pause':
+        if (gameStarted) {
+          paused = !paused;
+          if (paused) {
+            GameUtils.stopTimer();
+          } else {
+            // Resume timer
+            gameStartTime = Date.now() - gameElapsedTime;
+            timerInterval = setInterval(() => GameUtils.updateTimer(), 10);
+            update();
+          }
+          // Update pause button icon
+          $(this).find('i').toggleClass('fa-pause fa-play');
+        }
+        break;
+      case 'restart':
+        resetGame();
+        // Reset pause button icon
+        $('#pause').find('i').removeClass('fa-play').addClass('fa-pause');
+        break;
+    }
+  });
+  
+  // Add visual feedback for button presses
+  $('.control-btn').on('touchstart mousedown', function() {
+    $(this).addClass('pressed');
+  });
+  
+  $('.control-btn').on('touchend mouseup mouseleave', function() {
+    $(this).removeClass('pressed');
+  });
+
+
+
+});  // end docready
+

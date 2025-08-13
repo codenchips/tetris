@@ -4,7 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tetris Game</title>
-    <link rel="stylesheet" href="css/style.css?v=2">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geo:ital@0;1&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/style.css?v=4">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.17.11/dist/css/uikit.min.css" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -13,12 +18,15 @@
     
 </head>
 <body>
+  <input type="hidden" id="game_mode" value="compete" />
+	<input type="hidden" id="player_email" value="" />
+
   <!-- Main game container - centered and max 320px wide -->
   <div class="uk-container uk-container-small uk-flex uk-flex-center uk-padding-small">
-    <div class="game-wrapper" style="max-width: 320px; width: 100%;">
+    <div class="game-wrapper" style="max-width: 464px; width: 100%; min-height: 710px;"> <!-- max-width: 320px; -->
       
       <!-- Score and Timer -->
-      <div class="uk-text-center uk-margin-small-bottom">
+      <div class="uk-text-center fixed-head ">
         <div class="uk-grid-small uk-child-width-1-2" uk-grid>
           <div><p id="score" class="uk-text-bold uk-margin-remove">Score: 0</p></div>
           <div><p id="timer" class="uk-text-bold uk-margin-remove" style="color: #00ff00; font-family: 'Courier New', monospace;">Time: 00:00.00</p></div>
@@ -26,15 +34,17 @@
       </div>
 
       <!-- Game Area with Board and Bonus Buttons -->
-      <div class="uk-grid-small uk-margin-small-bottom" uk-grid>
+      <div class="uk-grid-small uk-margin-small-bottom uk-flex-center" uk-grid>
         <!-- Game Board (2/3 width) -->
-        <div class="uk-width-2-3">
+        <div class="uk-width-3-3 uk-flex uk-flex-center">
           <canvas id="tetris" width="200" height="400" class="uk-display-block"></canvas>
         </div>
         
         <!-- Bonus Buttons (1/3 width) -->
         <div class="uk-width-1-3">
-          <div class="bonus-buttons uk-flex uk-flex-column uk-height-1-1">
+          
+
+          <!-- <div class="bonus-buttons uk-flex uk-flex-column uk-height-1-1">
             <button id="bonus-1" class="uk-button uk-button-secondary uk-button-small uk-margin-small-bottom bonus-btn" disabled>
               <i class="fas fa-bolt"></i><br>
               <span class="uk-text-meta uk-text-small">Boost</span>
@@ -56,19 +66,21 @@
               <span class="uk-text-meta uk-text-small">Star</span>
             </button>
           </div>
-        </div>
-      </div>
+        </div> -->
+      </div> 
 
       <!-- Mobile Controls -->
       <div class="mobile-controls uk-margin-small-bottom">
-        <!-- Movement Controls -->
+        
         <div class="uk-flex uk-flex-center uk-margin-small-bottom">
           <button id="move-left" class="control-btn uk-button uk-button-default uk-button-small uk-margin-small-right">
             <i class="fas fa-chevron-left"></i>
           </button>
-          <button id="move-down" class="control-btn uk-button uk-button-default uk-button-small uk-margin-small-right">
-            <i class="fas fa-chevron-down"></i>
-          </button>
+
+          <button id="rotate" class="control-btn uk-button uk-button-default uk-button-small uk-margin-small-right">
+            <i class="fas fa-redo"></i>
+          </button>                  
+
           <button id="move-right" class="control-btn uk-button uk-button-default uk-button-small">
             <i class="fas fa-chevron-right"></i>
           </button>
@@ -76,20 +88,25 @@
         
         <!-- Action Controls -->
         <div class="uk-flex uk-flex-center uk-margin-small-bottom">
-          <button id="rotate" class="control-btn uk-button uk-button-default uk-button-small uk-margin-small-right">
-            <i class="fas fa-redo"></i>
+          <button id="move-down" class="control-btn uk-button uk-button-default uk-button-small uk-margin-small-right">
+            <i class="fas fa-chevron-down"></i>
           </button>
-          <button id="drop" class="control-btn uk-button uk-button-default uk-button-small">
-            <i class="fas fa-angle-double-down"></i>
-          </button>
+          
         </div>
       </div>
 
       <!-- Game Control Buttons -->
       <div class="uk-flex uk-flex-center uk-margin-small-bottom">
+
+          <button id="drop" class="control-btn uk-button uk-button-default uk-button-small">
+            <i class="fas fa-angle-double-down"></i>
+          </button>
+
+
         <button id="start" class="control-btn start-btn uk-button uk-button-primary uk-button-small uk-margin-small-right">
           <i class="fas fa-play"></i> Start Game
         </button>
+
         <button id="pause" class="control-btn uk-button uk-button-default uk-button-small uk-margin-small-right">
           <i class="fas fa-pause"></i>
         </button>
@@ -98,12 +115,129 @@
         </button>
       </div>
       
+      </div>
     </div>
+    <div id="scoreboard" class="uk-width-1-1 uk-margin-top">
+      <h3 class="uk-text-center">Scoreboard</h3>
+      <div id="scoreboard-content" class="uk-overflow-auto">
+        <table class="uk-table uk-table-striped">
+          <thead>
+            <tr>              
+              <th>Name</th>
+              <th>Score</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody id="scoreboard-body">            
+          </tbody>
+        </table>
+      </div>
   </div>
     
   
+
   
-    <script src="js/tetris.js?v=3"></script>
+  <!-- modals -->
+  <div id="enter-name-modal" uk-modal>
+    <div class="uk-modal-dialog uk-margin-auto-vertical uk-modal-body">
+      <button class="uk-modal-close-default" type="button" uk-close></button>
+      <form id="form-get-name">
+        <div class="uk-text-center" uk-grid>
+          <div class="uk-width-1-1">
+            <h3>Get on the scoreboard!</h3>
+          </div>
+
+          <div class="uk-width-1-2 uk-text-left">
+            <label for="form_firstname" class="uk-form-label">First Name</label>
+            <input id="form_firstname"
+              name="form_firstname"
+              class="uk-input free-type"
+              placeholder="Your First Name"
+              autocomplete="off"
+              required
+              value
+              oninvalid="this.setCustomValidity('You must enter your first name')"
+              oninput="this.setCustomValidity('')" />
+          </div>
+          <div class="uk-width-1-2 uk-text-left">
+            <label for="form_lastname" class="uk-form-label">Last Name</label>
+            <input id="form_lastname"
+              name="form_lastname"
+              class="uk-input free-type"
+              placeholder="Your Last Name"
+              autocomplete="off"
+              required
+              value
+              oninvalid="this.setCustomValidity('You must enter your last name')"
+              oninput="this.setCustomValidity('')" />
+          </div>
+          <div class="uk-width-1-1 uk-text-left">
+            <label for="form_branch" class="uk-form-label">Your Nearest CEF Branch</label>
+            <input id="form_branch"
+              name="form_branch"
+              class="uk-input free-type"
+              placeholder="CEF Branch"
+              autocomplete="off"
+              required
+              value
+              oninvalid="this.setCustomValidity('Please enter your local CEF branch')"
+              oninput="this.setCustomValidity('')" />
+          </div>					
+
+
+          <div class="uk-width-1-1">
+
+            <div class="form-actions">
+              <button id="savename" type="submit" class="uk-button uk-button-primary">Submit</button>							
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="enter-email-modal" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body">
+      <button class="uk-modal-close-default" type="button" uk-close></button>
+      <form id="form-get-email">
+        <div class="uk-text-center" uk-grid>
+          <div class="uk-width-1-1">
+            <h3>Enter your email</h3>
+            <p class="email_line1">This is the email address we will send the winning invitation to.</p>
+            <p class="email_line2">Each email address can only enter once - so be sure to practice first!</p>
+          </div>
+
+          <div class="uk-width-1-1 uk-text-left">						
+            <input id="form_email"
+              type="email"
+              autocomplete="email"
+              autocorrect="off"
+              autocapitalize="off"
+              spellcheck="false"	
+              name="form_email"
+              class="uk-input free-type"
+              placeholder="Your email"
+              autocomplete="off"
+              required
+              value
+              oninvalid="this.setCustomValidity('You must enter your email address to compete')"
+              oninput="this.setCustomValidity('')" />
+          </div>
+          
+          <span class="email_error" id="email_error"></span>
+
+          <div class="uk-width-1-1">
+            <div class="form-actions">
+              <button id="cancelemail" type="button" class="uk-button uk-button-danger">I'm not ready!</button>							
+              <button id="saveemail" type="submit" class="uk-button uk-button-primary">Let's Go!</button>							
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>	
+  
+  <script src="js/tetris.js?v=4"></script>
 </body>
 </html>
 
