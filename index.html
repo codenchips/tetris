@@ -9,12 +9,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Geo:ital@0;1&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="css/style.css?v=4">
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.17.11/dist/css/uikit.min.css" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/uikit@3.17.11/dist/js/uikit.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/uikit@3.17.11/dist/js/uikit-icons.min.js"></script>    
+
+    <link rel="stylesheet" href="css/style.css?v=5">
     
 </head>
 <body>
@@ -22,121 +24,166 @@
 	<input type="hidden" id="player_email" value="" />
 
   <!-- Main game container - centered and max 320px wide -->
-  <div class="uk-container uk-container-small uk-flex uk-flex-center uk-padding-small">
-    <div class="game-wrapper" style="max-width: 464px; width: 100%; min-height: 710px;"> <!-- max-width: 320px; -->
+  <div class="uk-container uk-container-small uk-flex uk-flex-center uk-padding-small main-game-container">
+    <!-- game wrapper, board and bg and constrols -->
+    <div class="game-wrapper" style="max-width: 465px;width: 100%; min-height: 710px;"> 
       
-      <!-- Score and Timer -->
-      <div class="uk-text-center fixed-head ">
-        <div class="uk-grid-small uk-child-width-1-2" uk-grid>
-          <div><p id="score" class="uk-text-bold uk-margin-remove">Score: 0</p></div>
-          <div><p id="timer" class="uk-text-bold uk-margin-remove" style="color: #00ff00; font-family: 'Courier New', monospace;">Time: 00:00.00</p></div>
-        </div>
-      </div>
+      <!-- Fixed head for spacing -->
+      <div class="uk-text-center fixed-head "></div>
 
-      <!-- Game Area with Board and Bonus Buttons -->
+      <!-- Game Area with Board and Controls -->
       <div class="uk-grid-small uk-margin-small-bottom uk-flex-center" uk-grid>
-        <!-- Game Board (2/3 width) -->
+        
+        <!-- Game Board -->
         <div class="uk-width-3-3 uk-flex uk-flex-center">
           <canvas id="tetris" width="200" height="400" class="uk-display-block"></canvas>
         </div>
-        
-        <!-- Bonus Buttons (1/3 width) -->
-        <div class="uk-width-1-3">
-          
 
-          <!-- <div class="bonus-buttons uk-flex uk-flex-column uk-height-1-1">
-            <button id="bonus-1" class="uk-button uk-button-secondary uk-button-small uk-margin-small-bottom bonus-btn" disabled>
-              <i class="fas fa-bolt"></i><br>
-              <span class="uk-text-meta uk-text-small">Boost</span>
+      
+        <!-- Mobile Controls -->
+        <div class="uk-width-1-2 mobile-controls uk-margin-remove-bottom">        
+          <!-- Action Controls -->
+          <div class="uk-flex uk-flex-center controls-left">
+            <button id="move-left" class="control-btn uk-button uk-button-default uk-button-small">
+              <i class="fas fa-chevron-left"></i>
             </button>
-            <button id="bonus-2" class="uk-button uk-button-secondary uk-button-small uk-margin-small-bottom bonus-btn" disabled>
-              <i class="fas fa-bomb"></i><br>
-              <span class="uk-text-meta uk-text-small">Clear</span>
+            <button id="move-right" class="control-btn uk-button uk-button-default uk-button-small">
+              <i class="fas fa-chevron-right"></i>
             </button>
-            <button id="bonus-3" class="uk-button uk-button-secondary uk-button-small uk-margin-small-bottom bonus-btn" disabled>
-              <i class="fas fa-magic"></i><br>
-              <span class="uk-text-meta uk-text-small">Magic</span>
-            </button>
-            <button id="bonus-4" class="uk-button uk-button-secondary uk-button-small uk-margin-small-bottom bonus-btn" disabled>
-              <i class="fas fa-shield-alt"></i><br>
-              <span class="uk-text-meta uk-text-small">Shield</span>
-            </button>
-            <button id="bonus-5" class="uk-button uk-button-secondary uk-button-small uk-margin-small-bottom bonus-btn" disabled>
-              <i class="fas fa-star"></i><br>
-              <span class="uk-text-meta uk-text-small">Star</span>
-            </button>
+          </div>                 
+          <div class="uk-flex uk-flex-center uk-margin-remove-bottom controls-left">
+            <button id="move-down" class="control-btn uk-button uk-button-default uk-button-small">
+              <i class="fas fa-chevron-down"></i>
+            </button>          
           </div>
-        </div> -->
-      </div> 
-
-      <!-- Mobile Controls -->
-      <div class="mobile-controls uk-margin-small-bottom">
-        
-        <div class="uk-flex uk-flex-center uk-margin-small-bottom">
-          <button id="move-left" class="control-btn uk-button uk-button-default uk-button-small uk-margin-small-right">
-            <i class="fas fa-chevron-left"></i>
-          </button>
-
-          <button id="rotate" class="control-btn uk-button uk-button-default uk-button-small uk-margin-small-right">
-            <i class="fas fa-redo"></i>
-          </button>                  
-
-          <button id="move-right" class="control-btn uk-button uk-button-default uk-button-small">
-            <i class="fas fa-chevron-right"></i>
-          </button>
-        </div>
-        
-        <!-- Action Controls -->
-        <div class="uk-flex uk-flex-center uk-margin-small-bottom">
-          <button id="move-down" class="control-btn uk-button uk-button-default uk-button-small uk-margin-small-right">
-            <i class="fas fa-chevron-down"></i>
-          </button>
-          
-        </div>
-      </div>
-
-      <!-- Game Control Buttons -->
-      <div class="uk-flex uk-flex-center uk-margin-small-bottom">
-
-          <button id="drop" class="control-btn uk-button uk-button-default uk-button-small">
-            <i class="fas fa-angle-double-down"></i>
-          </button>
+          <!-- // Action Controls -->
+        </div>      
+        <!-- //  Mobile Controls -->
 
 
-        <button id="start" class="control-btn start-btn uk-button uk-button-primary uk-button-small uk-margin-small-right">
-          <i class="fas fa-play"></i> Start Game
-        </button>
-
-        <button id="pause" class="control-btn uk-button uk-button-default uk-button-small uk-margin-small-right">
-          <i class="fas fa-pause"></i>
-        </button>
-        <button id="restart" class="control-btn uk-button uk-button-default uk-button-small">
-          <i class="fas fa-sync-alt"></i>
-        </button>
-      </div>
+        <!-- Mobile Controls -->
+        <div class="uk-width-1-2 mobile-controls uk-margin-remove-bottom">        
+          <!-- Action Controls -->
+          <div class="uk-flex uk-flex-center controls-right">
+            <!-- <button id="pause" class="control-btn uk-button uk-button-default uk-button-small">
+              <i class="fas fa-pause"></i>
+            </button> -->
+            <!-- <button id="restart" class="control-btn uk-button uk-button-default uk-button-small" style="visibility: hidden;">
+              <i class="fas fa-sync-alt"></i>
+            </button>  -->
+            <button id="start" class="control-btn start-btn uk-button uk-button-primary uk-button-small" style="visibility: hidden;">
+              <i class="fas fa-play"></i>
+            </button>            
+            <button id="rotate" class="control-btn uk-button uk-button-default uk-button-small">
+              <i class="fas fa-redo"></i>
+            </button>     
+          </div>
+                  
+          <div class="uk-flex uk-flex-center uk-margin-remove-bottom  controls-right">
+            <button id="drop" class="control-btn uk-button uk-button-default uk-button-small">
+              <i class="fas fa-angle-double-down"></i>
+            </button>         
+          </div>
+          <!-- // Action Controls -->
+        </div>      
+      <!-- // Game Control Buttons -->
       
       </div>
+      <!-- // Game Area with Board and Controls -->
     </div>
-    <div id="scoreboard" class="uk-width-1-1 uk-margin-top">
-      <h3 class="uk-text-center">Scoreboard</h3>
-      <div id="scoreboard-content" class="uk-overflow-auto">
-        <table class="uk-table uk-table-striped">
-          <thead>
-            <tr>              
-              <th>Name</th>
-              <th>Score</th>
-              <th>Time</th>
-            </tr>
-          </thead>
-          <tbody id="scoreboard-body">            
-          </tbody>
-        </table>
+    <!-- // game wrapper (max-width: 464px; width: 100%; min-height: 710px;) -->
+
+    <!-- game info container -->
+    <div id="game-info" class="uk-width-1-1 uk-margin-top">
+
+      <div id="instructions">
+        <h1 class="uk-text-center">Block Game</h1>
+        <p class="uk-text-center">Use the controls below to play the game. The objective is to score as many points as possible by clearing lines.</p>
+        <br>
       </div>
+      
+      <div id="bonus-buttons" class="uk-container " uk-grid>         
+       
+          <div class="uk-width-1-2 uk-flex uk-flex-center">
+            <button id="score" class="uk-button uk-button-secondary uk-button-small uk-margin-small-bottom bonus-btn info-btn">
+              <span class="uk-text-meta uk-text-small">Score</span>
+              <span id="score-value">0</span>              
+            </button>
+          </div>
+          <div class="uk-width-1-2 uk-flex uk-flex-center">
+            <button id="time" class="uk-button uk-button-secondary uk-button-small uk-margin-small-bottom bonus-btn info-btn">
+              <span class="uk-text-meta uk-text-small">Time</span>
+              <span id="time-value">0:00.00</span>              
+            </button>
+          </div>
+          <div class="uk-width-1-2 uk-flex uk-flex-center">
+            <button id="bonus-1" class="uk-button uk-button-secondary uk-button-small uk-margin-small-bottom bonus-btn">
+              <img src="images/snail.png" width="50" alt="Slow Bonus" class="uk-preserve-width uk-preserve-height">
+              <span class="uk-text-meta uk-text-small">Slow</span>
+            </button>
+          </div>
+          <div class="uk-width-1-2 uk-flex uk-flex-center">
+            <button id="bonus-2" class="uk-button uk-button-secondary uk-button-small uk-margin-small-bottom bonus-btn">
+              <img src="images/unlit-bomb.png" width="50" alt="Slow Bonus" class="uk-preserve-width uk-preserve-height">
+              <span class="uk-text-meta uk-text-small">Bomb</span>
+            </button>
+          </div>
+          <div class="uk-width-1-2 uk-flex uk-flex-center">
+            <button id="bonus-3" class="uk-button uk-button-secondary uk-button-small uk-margin-small-bottom bonus-btn">
+              <img src="images/broken-wall.png" width="50" alt="Slow Bonus" class="uk-preserve-width uk-preserve-height">
+              <span class="uk-text-meta uk-text-small">Clear</span>
+            </button>
+          </div>
+          <div class="uk-width-1-2 uk-flex uk-flex-center">
+            <button id="bonus-4" class="uk-button uk-button-secondary uk-button-small uk-margin-small-bottom bonus-btn">
+              <img src="images/i-brick.png" width="50" alt="Slow Bonus" class="uk-preserve-width uk-preserve-height">
+              <span class="uk-text-meta uk-text-small">Replace</span>
+            </button>
+          </div>
+        
+      </div>
+    
+    </div>       
+    <!-- // game info container -->
+
+
+    <div id="overlay" class="uk-width-1-1 uk-margin-top">
+      <div id="overlay-content">
+      <div id="instructions">
+        <h1 class="uk-text-center">Block Game</h1>                
+        <p class="uk-text-center">Some intro text here...</p>
+
+        <button id="play-now" class="start-btn uk-button uk-button-secondary uk-button-small ">
+          <i class="fas fa-play"></i> Play Now
+        </button>               
+      </div>
+
+      <div id="scoreboard" class="uk-width-1-1">
+          <h3 class="uk-text-center">Scoreboard</h3>
+          <div id="scoreboard-content" class="uk-overflow-auto">
+            <table class="uk-table  score-table">
+              <thead>
+                <tr>              
+                  <th style="width:60%;">Name</th>
+                  <th>Score</th>
+                  <th>Time</th>
+                </tr>
+              </thead>
+              <tbody id="scoreboard-body">            
+              </tbody>
+            </table>
+          </div>
+      </div>        
+      </div>  
+    </div>
+
+      
   </div>
+  <!-- //  Main game container - centered and max 320px wide -->
     
   
 
-  
+
   <!-- modals -->
   <div id="enter-name-modal" uk-modal>
     <div class="uk-modal-dialog uk-margin-auto-vertical uk-modal-body">
@@ -197,14 +244,13 @@
   </div>
 
   <div id="enter-email-modal" uk-modal>
-    <div class="uk-modal-dialog uk-modal-body">
+    <div class="uk-modal-dialog uk-modal-body uk-margin-auto-vertical">
       <button class="uk-modal-close-default" type="button" uk-close></button>
       <form id="form-get-email">
         <div class="uk-text-center" uk-grid>
           <div class="uk-width-1-1">
-            <h3>Enter your email</h3>
-            <p class="email_line1">This is the email address we will send the winning invitation to.</p>
-            <p class="email_line2">Each email address can only enter once - so be sure to practice first!</p>
+            <h3>Please enter your email</h3>
+            <p class="email_line1">Some more blurb here...</p>            
           </div>
 
           <div class="uk-width-1-1 uk-text-left">						
@@ -220,16 +266,18 @@
               autocomplete="off"
               required
               value
+              style="background-color: #1a1a1a;color: #ffffff;border: 1px solid #fafafa99;"
               oninvalid="this.setCustomValidity('You must enter your email address to compete')"
               oninput="this.setCustomValidity('')" />
+              
           </div>
           
           <span class="email_error" id="email_error"></span>
 
-          <div class="uk-width-1-1">
+          <div class="uk-width-1-1" style="margin-top: 0;">
             <div class="form-actions">
-              <button id="cancelemail" type="button" class="uk-button uk-button-danger">I'm not ready!</button>							
-              <button id="saveemail" type="submit" class="uk-button uk-button-primary">Let's Go!</button>							
+              <button id="cancelemail" type="button" class="uk-button uk-button-danger">Cancel</button>							
+              <button id="saveemail" type="submit" class="uk-button uk-button-primary">Let's Play!</button>							
             </div>
           </div>
         </div>

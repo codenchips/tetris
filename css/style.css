@@ -1,3 +1,11 @@
+html, body {
+  width: 100vw;
+  height: 100vh;
+  margin:0;
+  padding:0;
+  overflow: hidden;
+}
+
 
 body {
   margin: 0;
@@ -10,10 +18,27 @@ body {
   color: #ffffff;
   font-family: 'Geo', 'Arial', sans-serif;
   font-weight: 400;
-  font-size: 16px;
+  font-size: 18px;
   overflow-x: hidden;
   min-height: 100vh;
 }
+
+h1,h2,h3,h4,h5,h6,p,small,span {
+  color: #ffffff;
+  font-family: 'Geo', 'Arial', sans-serif;
+  margin: 0;
+  padding:0;
+}
+
+
+.main-game-container {
+  max-width: 768px;
+}
+
+#game-info {
+  padding-left: 10px;
+}
+
 
 /* Game Wrapper */
 .game-wrapper {
@@ -21,7 +46,12 @@ body {
   background-position: top;
   background-size: 464px auto;
   background-repeat: no-repeat;
- 
+  min-width: 250px;
+}
+@media (min-width: 768px) {
+  .game-wrapper {
+    min-width: 465px
+  }
 }
 
 .game-wrapper .fixed-head {
@@ -33,81 +63,203 @@ body {
 
 /* Canvas Styling */
 #tetris {
-  /* border: 2px solid #ffffff;
-  border-radius: 5px; */
-  background: rgba(0, 0, 0, 0.3);
-  padding-bottom: 30px;
+    /* border: 2px solid #ffffff;
+    border-radius: 5px; */
+    background: #696969d0;
+    margin-bottom: 32px;
+    border-bottom: 2px #6a6a6a;
+    border-radius: 0 0 10px 10px;
+    border-bottom-style: inset;
 }
 
 /* Bonus Buttons */
-.bonus-buttons {
-  height: 400px; /* Match canvas height */
+#bonus-buttons {  
+  padding: 0 17%;
 }
 
-.bonus-btn {
-  width: 100% !important;
-  height: 70px !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
-  background: rgba(255, 255, 255, 0.1) !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
-  backdrop-filter: blur(5px) !important;
-  transition: all 0.3s ease !important;
-  color: #ffffff !important;
+.bonus-btn {  
+  width: 82px;
+  height: 70px;
+  padding: 40px 42px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(5px);
+  transition: all 0.3s ease;
+  color: #ffffff;
 }
 
 .bonus-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.2) !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 .bonus-btn:disabled {
-  opacity: 0.5 !important;
-  cursor: not-allowed !important;
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .bonus-btn i {
-  font-size: 16px !important;
-  margin-bottom: 2px !important;
+  font-size: 16px;
+  margin-bottom: 10px;
 }
 
 .bonus-btn .uk-text-meta {
-  font-size: 10px !important;
-  line-height: 1 !important;
-  color: rgba(255, 255, 255, 0.8) !important;
+  font-size: 20px;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.8);
+}
+span#score-value {
+  font-size: 23px;
+}
+span#time-value {
+  font-size: 23px;
+}
+
+.mobile-controls button {
+  margin: 7px;
+}
+
+.blurred {
+  filter: blur(5px);
+  transition: filter 0.3s ease;
+}
+
+.uk-modal-dialog {
+  background-color: #101010df;
+  border-color: #fafafaaa;
+  border-width: 1px;
+  border-style: solid;  
+  border-radius: 10px;
+  padding: 20px;
+  color: #ffffff; 
+}
+.uk-modal-dialog h3 {
+  font-size: 1.9rem;
+  margin-bottom: 15px;  
+}
+.uk-input {
+  background-color: #1a1a1a;
+  color: #ffffff;
+  border: 1px solid #fafafa99;
+  border-radius: 5px;
+  padding: 10px;
+  width: calc(100% - 20px);
+}
+.uk-input:focus {
+  border-color: #40c057;
+  box-shadow: 0 0 0 0.2rem rgba(64, 192, 87, 0.35);
+}
+.form-actions buttton {
+  margin: 5px;
+  padding: 8px 15px;
+  font-size: 16px;
+}
+
+
+#overlay {
+  position: fixed;
+  margin-top: 0 !important;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #0e0e0e99;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#overlay-content {
+    
+    position: absolute;
+    background-color: #000000aa;
+    width: 380px;
+    padding: 10px 5px;
+    border-radius: 10px;
+    border-color: #eaeaeaaa;
+    border-width: 1px;
+    border-style: solid;
+}
+
+
+@media (max-width: 550px) {
+  .game-wrapper { 
+    min-width: 75%;
+  }
+
+
+  #scoreboard {
+    display:none;
+  }
+  
+  #instructions {
+    display:none;
+  }
+
+  #bonus-buttons {
+    padding: 0 5%;
+  }
+
+  #bonus-buttons .uk-width-1-2 {
+    width: 100%;
+    max-width: 140px;
+  }
+  
+  .bonus-btn {
+    width: 80px;
+    height: 70px;
+  }
+  
+  .bonus-btn i {
+    font-size: 18px;
+  }
+  
+  .bonus-btn .uk-text-meta {
+    font-size: 16px;
+  }
 }
 
 /* Mobile Control Buttons */
+.controls-left {
+  padding-left: 25px;
+}
+.controls-right {
+  padding-right: 25px;
+}
+
+
 .control-btn {
-  background: rgba(255, 255, 255, 0.1) !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
-  color: #ffffff !important;
-  border-radius: 8px !important;
-  width: 50px !important;
-  height: 50px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  cursor: pointer !important;
-  transition: all 0.2s ease !important;
-  user-select: none !important;
-  -webkit-tap-highlight-color: transparent !important;
-  backdrop-filter: blur(5px) !important;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  border-radius: 8px;
+  width: 70px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  backdrop-filter: blur(5px);
 }
 
 .control-btn:hover {
-  background: rgba(255, 255, 255, 0.2) !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 .control-btn:active,
 .control-btn.pressed {
-  background: rgba(255, 255, 255, 0.3) !important;
-  transform: scale(0.95) !important;
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(0.95);
 }
 
 .control-btn i {
@@ -115,55 +267,98 @@ body {
   font-size: 18px;
 }
 
-/* Start Button Special Styling */
-.start-btn {
-  width: 120px !important;
-  background: rgba(40, 167, 69, 0.9) !important;
-  border: 1px solid rgba(40, 167, 69, 1) !important;
-  font-size: 14px !important;
+
+.mobile-controls button.start-btn {
+  background: rgba(40, 167, 69, 0.9); 
+  border: 1px solid rgba(40, 167, 69, 1);
+  font-size: 13px;
+  position: relative;
+} 
+
+
+
+#instructions {
+  display:flex; 
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;  
+}
+
+#scoreboard {
+  border: 1px solid #fafafa99;
+  border-radius: 7px;
+  padding: 0 7px;
+  margin: 30px 10px 10px 10px;
+  width: 95%;
+}
+#scoreboard h3 {
+  margin: 10px 0 10px 0;
+}
+
+#scoreboard .uk-table th {
+   color: rgba(40, 167, 69, 0.9); 
+   font-size: 110%;
+}
+
+#scoreboard .uk-table td {
+  padding: 3px 0;
+}
+
+
+button#savename,
+button#play-now,
+button#saveemail {
+  margin: 20px 0 5px 0;;
+  background: rgba(40, 167, 69, 0.9); 
+  border: 1px solid rgba(40, 167, 69, 1);
+  font-size: 22px;
+  border-radius: 5px;
+  padding: 5px 15px;
+}
+button#cancelemail {
+  margin: 20px 15px 5px 0;;
+  background: #f0506e;
+  border: 1px solid #f0506e;
+  font-size: 22px;
+  border-radius: 5px;
+  padding: 5px 15px;
+}
+button#play-now i {
+  position: relative;
+  top: 2px;
+  margin-right: 4px;
 }
 
 .start-btn:hover {
-  background: rgba(33, 136, 56, 0.9) !important;
-  border: 1px solid rgba(33, 136, 56, 1) !important;
+  background: rgba(33, 136, 56, 0.9);
+  border: 1px solid rgba(33, 136, 56, 1);
 }
 
 .start-btn:disabled {
-  background: rgba(108, 117, 125, 0.5) !important;
-  border: 1px solid rgba(108, 117, 125, 0.7) !important;
-  cursor: not-allowed !important;
+  background: rgba(108, 117, 125, 0.5);
+  border: 1px solid rgba(108, 117, 125, 0.7);
+  cursor: not-allowed;
 }
 
-/* Timer Special Styling */
-#timer {
-  color: #00ff00 !important;
-  font-family: 'Courier New', monospace !important;
+.score-table th {
+  padding: 0;
+  color: #fff;
 }
+
 
 /* Responsive adjustments for mobile */
 @media (max-width: 480px) {
   .game-wrapper {
-    padding: 10px;
+    padding: 5px;
   }
   
   .control-btn {
-    width: 45px !important;
-    height: 45px !important;
+    width: 45px;
+    height: 45px;
   }
   
   .control-btn i {
-    font-size: 16px !important;
+    font-size: 16px;
   }
   
-  .bonus-btn {
-    height: 65px !important;
-  }
-  
-  .bonus-btn i {
-    font-size: 14px !important;
-  }
-  
-  .bonus-btn .uk-text-meta {
-    font-size: 9px !important;
-  }
 }

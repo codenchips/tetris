@@ -256,7 +256,7 @@ function drawPiece() {
 // Function to draw the drop indicator (where the piece will land)
 function drawDropIndicator() {
   const dropPosition = getDropPosition();
-  context.fillStyle = 'rgba(222, 215, 215, 0.08)'; // Semi-transparent white
+  context.fillStyle = 'rgba(194, 202, 236, 0.25)'; // Semi-transparent white
   currentPiece.shape.forEach((row, y) => {
     row.forEach((value, x) => {
       if (value) {
@@ -267,9 +267,8 @@ function drawDropIndicator() {
 }
 
 // Update the score display in the DOM
-function drawScore() {
-  // Update the HTML score element using jQuery
-  $('#score').text(`Score: ${score}`);
+function drawScore() {  
+  $('#score-value').text(`${score}`);
 }
 
 // Function to merge the piece with the board
@@ -791,8 +790,7 @@ function resetGame() {
   GameUtils.resetTimer().updateUI();
   
   // Reset start button
-  $('#start').prop('disabled', false)
-    .html('<i class="fas fa-play"></i> Start Game');
+  $('#start').prop('disabled', false).html('<i class="fas fa-play"></i>');
   
   // Only start update loop if game has been started
   if (gameStarted) {
@@ -817,7 +815,7 @@ const GameUtils = {
   
   // Update UI elements with jQuery
   updateUI: function() {
-    $('#score').text(`Score: ${score}`);
+    $('#score-value').text(`${score}`);
     return this;
   },
   
@@ -851,7 +849,7 @@ const GameUtils = {
     gameStarted = false;
     gameStartTime = null;
     gameElapsedTime = 0;
-    $('#timer').text('Time: 00:00.00');
+    $('#time-value').text('00:00.00');
     return this;
   },
   
@@ -863,8 +861,8 @@ const GameUtils = {
       const seconds = totalSeconds % 60;
       const hundredths = Math.floor((gameElapsedTime % 1000) / 10);
       
-      const timeString = `Time: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${hundredths.toString().padStart(2, '0')}`;
-      $('#timer').text(timeString);
+      const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${hundredths.toString().padStart(2, '0')}`;
+      $('#time-value').text(timeString);
     }
     return this;
   }
@@ -873,6 +871,7 @@ const GameUtils = {
 // Global functions for modal interactions
 async function getName() {
   return new Promise((resolve) => {
+    console.log('getName called');
     $('#form-get-name').off('submit').on('submit', function(e) {
       e.preventDefault();
       let firstname = $('#form_firstname').val();
@@ -880,12 +879,15 @@ async function getName() {
       let branch = $('#form_branch').val();
       let email = $('#player_email').val();
       if (firstname && lastname && branch && email) {        
+        console.log('Name entered:', firstname, lastname, branch, email);
         UIkit.modal('#enter-name-modal').hide();
+        $('#overlay').show();        
         resolve(`${firstname}|${lastname}|${branch}|${email}`);
         //resolve(firstname);
       }
     });     
     setTimeout(function() {
+      console.log('Showing name modal');
       UIkit.modal('#enter-name-modal', { stack : true }).show();
       $('#form_name').val("").focus();
     }, 1000);
@@ -908,13 +910,24 @@ async function getEmail() {
             data = JSON.parse(data);
             console.log(data);
             if (data.success == '1') {                
-              $('#email_error').html("Sorry, this email address has already been entered in the competition.").show();;
-              $('#form_email').val("").focus();
-              resolve(false);
+              // $('#email_error').html("Sorry, this email address has already been entered in the competition.").show();;
+              // $('#form_email').val("").focus();
+              // resolve(false);
+
+              // this email is already in teh db but allow it anyway
+              $('#player_email').val(email);
+              UIkit.modal('#enter-email-modal').hide();
+              $('#overlay').hide();
+              
+              resolve(email);
+
+
             } else {
               // save the email
               $('#player_email').val(email);
               UIkit.modal('#enter-email-modal').hide();
+              $('#overlay').hide();
+              
               resolve(email);
             }
           }
@@ -932,49 +945,46 @@ async function getEmail() {
 async function showGameOver() {
   // Stop the timer when game ends
   GameUtils.stopTimer();
-  
+  gameStarted = false; // Set gameStarted to false to stop the game loop
+
   // Calculate final time for display
   const finalMinutes = Math.floor(gameElapsedTime / 60000);
   const finalSeconds = Math.floor((gameElapsedTime % 60000) / 1000);
   const finalHundredths = Math.floor((gameElapsedTime % 1000) / 10);
   const finalTimeString = `${finalMinutes.toString().padStart(2, '0')}:${finalSeconds.toString().padStart(2, '0')}.${finalHundredths.toString().padStart(2, '0')}`;
-  
-  
-  // You could create a custom modal here instead of alert
-  // For now, keeping the alert but could be enhanced with jQuery UI or custom modal
-  
-resetGame();
-    var game_mode = $('#game_mode').val();
-    if (game_mode == 'compete') {
-        
-      name = await getName();
-      while (!name) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
 
-      alert(`Game Over!\nFinal Score: ${score}\nTime: ${finalTimeString}`);
-      
 
-      // save the score
-      saveScore(score, name, gameElapsedTime); 
-      // get the scores
-      setTimeout(function() {
-        getScores(); // Refresh the scores
-      },1000);
+  var game_mode = $('#game_mode').val();
+  if (game_mode == 'compete') {
+
+    name = await getName();
+    while (!name) {
+      await new Promise(resolve => setTimeout(resolve, 100));
     }
 
+    // save the score
+    saveScore(score, name, gameElapsedTime);
+    // get the scores
+    setTimeout(function () {
+      getScores(); // Refresh the scores
+    }, 1000);
 
-  
+  }
+  resetGame();
+
 }
 
-  function renderScores(scores) {
-    console.log('render scores', scores);
-    // Render the scores on the screen
+  function renderScores(scores) {        
     if (scores) {
-      $('#score-list').empty();
-      scores.forEach(function(score) {
-        console.log(score.score);
-        $('#scoreboard-body').append('<tr><td>' + score.score + '</td><td>' + score.firstname + ' ' + score.lastname.charAt(0) + '</td><td>' + score.time + '</td></tr>');
+      $('#scoreboard-body').empty();
+      scores.forEach(function(score) {        
+        gameElapsedTime = score.time; // Use the time from the score
+        const finalMinutes = Math.floor(gameElapsedTime / 60000);
+        const finalSeconds = Math.floor((gameElapsedTime % 60000) / 1000);
+        const finalHundredths = Math.floor((gameElapsedTime % 1000) / 10);
+        const finalTimeString = `${finalMinutes.toString().padStart(2, '0')}:${finalSeconds.toString().padStart(2, '0')}.${finalHundredths.toString().padStart(2, '0')}`;
+        
+        $('#scoreboard-body').append('<tr><td>' + score.firstname + ' ' + score.lastname.charAt(0) + '</td><td>' + score.score + '</td><td>' + finalTimeString + '</td></tr>');
       });
     }     
   }
@@ -1053,7 +1063,7 @@ $(document).on('keydown', function(event) {
 
 // Start the game - load images first using jQuery patterns
 $(document).ready(function() {
-
+   
 
   // Initialize the game but don't start it
   loadImages().then(() => {
@@ -1062,6 +1072,7 @@ $(document).ready(function() {
     // Draw initial state without starting the game loop
     drawBoard();
     drawPiece();
+    getScores();
   }).catch((error) => {
     GameUtils.showNotification('Game ready with color fallback! Click Start to begin.', 'warning');
     resetPiece();
@@ -1071,17 +1082,32 @@ $(document).ready(function() {
   });
   
 
+$('#play-now').on('click', async function() {
+
+    const test_mode = false;
+    
+    email = $('#player_email').val();
+    if (!email && !test_mode) {
+      email = await getEmail();
+      while (!email) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+    } else {
+      $('#player_email').val("test@test.com"); // Ensure email is set in the input
+    }
+
+
+    // Start the game
+    gameStarted = true;
+    GameUtils.startTimer();
+    update(); // Start the game loop
+});
+
   
   // Mobile touch controls - prevent default touch behavior and add click handlers
   $('.control-btn').on('touchstart click', async function(e) {
-    e.preventDefault();
-    
-    const buttonId = this.id;
-    
-    
-
-    // Only allow game controls if game has started
-    //if (!gameStarted && buttonId !== 'restart') return;
+    e.preventDefault();    
+    const buttonId = this.id;    
     
     if (paused && buttonId !== 'pause' && buttonId !== 'restart') return; // Only allow pause/restart when paused
 
@@ -1090,21 +1116,13 @@ $(document).ready(function() {
     switch(buttonId) {
       case 'start':
         if (!gameStarted) {
-          console.log('Start button clicked', gameStarted);
-          email = $('#player_email').val();
-          if (!email) {
-            email = await getEmail();
-            while (!email) {
-              await new Promise(resolve => setTimeout(resolve, 100));
-            }
-          }
-
+         
 
           gameStarted = true;
           GameUtils.startTimer();
           update(); // Start the game loop
-          $(this).prop('disabled', true)
-            .html('<i class="fas fa-check"></i> Started');
+          $(this).prop('disabled', false).html('<i class="fas fa-pause"></i>').attr('id', 'pause');
+
           GameUtils.showNotification('Game started! Good luck!', 'success');
         }
         break;        
