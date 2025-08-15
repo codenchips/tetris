@@ -323,10 +323,48 @@ function collide() {
 // Function to rotate the piece
 function rotatePiece() {
   const originalShape = currentPiece.shape;
+  const originalX = currentPiece.x;
+  
+  // Perform the rotation
   currentPiece.shape = currentPiece.shape[0].map((_, index) => currentPiece.shape.map(row => row[index]).reverse());
-  if (collide()) {
-    currentPiece.shape = originalShape; // Revert if collision
+  
+  // Check if rotation is valid at current position
+  if (!collide() && !isOutOfBounds()) {
+    return; // Rotation successful, no adjustment needed
   }
+  
+  // Try wall kicks - attempt to move left/right to make rotation work
+  const wallKickOffsets = [-1, 1, -2, 2]; // Try moving left 1, right 1, left 2, right 2
+  
+  for (const offset of wallKickOffsets) {
+    currentPiece.x = originalX + offset;
+    
+    // Check if this position works (no collision and within bounds)
+    if (!collide() && !isOutOfBounds()) {
+      GameUtils.logGameState(`Wall kick successful: moved ${offset > 0 ? 'right' : 'left'} ${Math.abs(offset)} position(s)`);
+      return; // Successful wall kick
+    }
+  }
+  
+  // If no wall kick worked, revert everything
+  currentPiece.shape = originalShape;
+  currentPiece.x = originalX;
+  GameUtils.logGameState('Rotation failed: no valid wall kick position found');
+}
+
+// Helper function to check if piece is out of bounds
+function isOutOfBounds() {
+  return currentPiece.shape.some((row, y) => {
+    return row.some((value, x) => {
+      if (value) {
+        const newX = currentPiece.x + x;
+        const newY = currentPiece.y + y;
+        // Check if any part of the piece is outside the board boundaries
+        return newX < 0 || newX >= 10 || newY < 0 || newY >= 20;
+      }
+      return false;
+    });
+  });
 }
 
 // Function to move the piece left or right
