@@ -325,23 +325,43 @@ function rotatePiece() {
   const originalShape = currentPiece.shape;
   const originalX = currentPiece.x;
   
+  // Check if this is an I-piece (colorIndex 1, which is a 4x1 or 1x4 piece)
+  const isIPiece = currentPiece.colorIndex === 1;
+  
   // Perform the rotation
   currentPiece.shape = currentPiece.shape[0].map((_, index) => currentPiece.shape.map(row => row[index]).reverse());
   
+  // Special handling for I-piece rotation anchor point
+  if (isIPiece) {
+    // Determine if we're rotating from horizontal to vertical or vice versa
+    const wasHorizontal = originalShape.length === 1; // 1 row, multiple columns
+    const nowVertical = currentPiece.shape.length > currentPiece.shape[0].length;
+    
+    if (wasHorizontal && nowVertical) {
+      // Rotating from horizontal (4x1) to vertical (1x4)
+      // Adjust position to keep piece centered around the same point
+      currentPiece.x += 1; // Move right 1 to center the rotation
+    } else if (!wasHorizontal && !nowVertical) {
+      // Rotating from vertical (1x4) to horizontal (4x1)  
+      // Adjust position to keep piece centered around the same point
+      currentPiece.x -= 1; // Move left 1 to center the rotation
+    }
+  }
+  
   // Check if rotation is valid at current position
   if (!collide() && !isOutOfBounds()) {
-    return; // Rotation successful, no adjustment needed
+    return; // Rotation successful, no additional adjustment needed
   }
   
   // Try wall kicks - attempt to move left/right to make rotation work
   const wallKickOffsets = [-1, 1, -2, 2]; // Try moving left 1, right 1, left 2, right 2
   
   for (const offset of wallKickOffsets) {
-    currentPiece.x = originalX + offset;
+    currentPiece.x = originalX + offset + (isIPiece ? getIPieceAdjustment(originalShape, currentPiece.shape) : 0);
     
     // Check if this position works (no collision and within bounds)
     if (!collide() && !isOutOfBounds()) {
-      GameUtils.logGameState(`Wall kick successful: moved ${offset > 0 ? 'right' : 'left'} ${Math.abs(offset)} position(s)`);
+      GameUtils.logGameState(`Wall kick successful: moved ${offset > 0 ? 'right' : 'left'} ${Math.abs(offset)} position(s)${isIPiece ? ' with I-piece centering' : ''}`);
       return; // Successful wall kick
     }
   }
@@ -350,6 +370,19 @@ function rotatePiece() {
   currentPiece.shape = originalShape;
   currentPiece.x = originalX;
   GameUtils.logGameState('Rotation failed: no valid wall kick position found');
+}
+
+// Helper function to get I-piece adjustment for wall kicks
+function getIPieceAdjustment(originalShape, newShape) {
+  const wasHorizontal = originalShape.length === 1;
+  const nowVertical = newShape.length > newShape[0].length;
+  
+  if (wasHorizontal && nowVertical) {
+    return 1; // Moving from horizontal to vertical, shift right
+  } else if (!wasHorizontal && !nowVertical) {
+    return -1; // Moving from vertical to horizontal, shift left  
+  }
+  return 0; // No adjustment needed
 }
 
 // Helper function to check if piece is out of bounds
