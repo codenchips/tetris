@@ -16,10 +16,17 @@ let timerInterval = null; // Timer update interval
 
 // Bonus button configuration and state
 const bonusConfig = {
-  slowAmount: 800, // Amount to slow down the game (in milliseconds) - easy to change
+  slowAmount: 400, // Amount to slow down the game (in milliseconds) - easy to change
   clearRows: 2,   // Number of rows to clear from bottom (half of 20) - easy to change
   bombRadius: 2,  // Radius of bomb explosion (4 blocks diameter = 2 radius) - easy to change
   bombHeight: 3,  // Height of bomb explosion area - easy to change
+  // Penalty points for using each bonus - easy to change
+  penalties: {
+    'bonus-1': -500, // Slow button penalty
+    'bonus-2': -400, // Clear button penalty
+    'bonus-3': -300, // Bomb button penalty
+    'bonus-4': -300, // Replace button penalty
+  },
   bonusUsed: {
     'bonus-1': false, // Slow button
     'bonus-2': false, // Clear button
@@ -311,8 +318,8 @@ function merge() {
   });
   
   // Award 1 point for placing a piece
-  score += 1;
-  GameUtils.logGameState('Piece placed! +1 point. Score:', score);
+  score += 10;
+  GameUtils.logGameState('Piece placed! +10 point. Score:', score);
 }
 
 // Function to reset the current piece
@@ -448,7 +455,7 @@ function dropToBottom() {
   
   // Calculate drop height and award bonus points
   const dropHeight = currentPiece.y - startingY;
-  const heightBonus = Math.round(dropHeight / 4);
+  const heightBonus = (Math.round(dropHeight / 4) * 10);
   
   if (heightBonus > 0) {
     score += heightBonus;
@@ -716,16 +723,16 @@ function clearLines() {
   let pointsEarned = 0;
   switch(clearedLines.length) {
     case 1:
-      pointsEarned = 10;
+      pointsEarned = 100;
       break;
     case 2:
-      pointsEarned = 25;
+      pointsEarned = 250;
       break;
     case 3:
-      pointsEarned = 40;
+      pointsEarned = 400;
       break;
     case 4:
-      pointsEarned = 60;
+      pointsEarned = 600;
       break;
     default:
       pointsEarned = 0;
@@ -917,6 +924,9 @@ function activateBonus(buttonId) {
   
   // Mark bonus as used
   bonusConfig.bonusUsed[buttonId] = true;
+  
+  // Apply penalty for using the bonus
+  applyBonusPenalty(buttonId);
   
   // Disable the button and mark it as used
   $(`#${buttonId}`).prop('disabled', true).addClass('used');
@@ -1225,6 +1235,20 @@ function activateReplaceBonus() {
   GameUtils.showNotification('Piece replaced with I-piece!', 'success');
 }
 
+// Function to apply penalty for using a bonus
+function applyBonusPenalty(buttonId) {
+  const penalty = bonusConfig.penalties[buttonId];
+  
+  if (penalty !== undefined) {
+    const oldScore = score;
+    score = Math.max(0, score + penalty); // Ensure score doesn't go below 0
+    
+    GameUtils.logGameState(`Bonus penalty applied! Score changed from ${oldScore} to ${score} (penalty: ${penalty})`)
+      .showNotification(`Bonus used! Score penalty: ${Math.abs(penalty)} points`, 'warning')
+      .updateUI(); // Update the score display
+  }
+}
+
 
 
 
@@ -1474,6 +1498,18 @@ $(document).on('keydown', function(event) {
   } else if (event.key === ' ') { // Space bar to drop piece to the bottom
     if (currentPiece) { // Ensure currentPiece is defined
       dropToBottom();
+    }
+  } else if (event.key >= '1' && event.key <= '4') {
+    // Number keys 1-4 for bonus buttons
+    const bonusNumber = parseInt(event.key);
+    const buttonId = `bonus-${bonusNumber}`;
+    
+    // Check if the bonus button is available (not used and not disabled)
+    const $bonusButton = $(`#${buttonId}`);
+    if (!$bonusButton.prop('disabled') && !bonusConfig.bonusUsed[buttonId]) {
+      activateBonus(buttonId);
+    } else {
+      GameUtils.showNotification(`Bonus ${bonusNumber} is not available!`, 'warning');
     }
   }
 });

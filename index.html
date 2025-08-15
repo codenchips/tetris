@@ -16,7 +16,7 @@
     <script src="https://cdn.jsdelivr.net/npm/uikit@3.17.11/dist/js/uikit.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/uikit@3.17.11/dist/js/uikit-icons.min.js"></script>    
 
-    <link rel="stylesheet" href="css/style.css?v=6">
+    <link rel="stylesheet" href="css/style.css?v=12">
     
 </head>
 <body>
@@ -105,40 +105,47 @@
       <div id="bonus-buttons" class="uk-container " uk-grid>         
        
           <div class="uk-width-1-2 uk-flex uk-flex-center">
-            <button id="score" class="uk-button uk-button-secondary uk-button-small uk-margin-small-bottom bonus-btn info-btn">
+            <button id="score" class="uk-button uk-button-secondary uk-button-small uk-margin-small-bottom bonus-btn info-btn">              
               <span class="uk-text-meta uk-text-small">Score</span>
               <span id="score-value">0</span>              
             </button>
           </div>
           <div class="uk-width-1-2 uk-flex uk-flex-center">
-            <button id="time" class="uk-button uk-button-secondary uk-button-small uk-margin-small-bottom bonus-btn info-btn">
+            <button id="time" class="uk-button uk-button-secondary uk-button-small uk-margin-small-bottom bonus-btn info-btn">              
               <span class="uk-text-meta uk-text-small">Time</span>
               <span id="time-value">0:00.00</span>              
             </button>
           </div>
           <div class="uk-width-1-2 uk-flex uk-flex-center">
             <button id="bonus-1" class="uk-button uk-button-secondary uk-button-small uk-margin-small-bottom bonus-btn">
+              <span class="tr key">1</span>
               <img src="images/snail.png" width="50" alt="Slow Bonus" class="uk-preserve-width uk-preserve-height">
               <span class="uk-text-meta uk-text-small">Slow</span>
+              <span class="br points">-500</span>
             </button>
           </div>
           <div class="uk-width-1-2 uk-flex uk-flex-center">
             <button id="bonus-2" class="uk-button uk-button-secondary uk-button-small uk-margin-small-bottom bonus-btn">
+              <span class="tr key">2</span>
               <img src="images/broken-wall.png" width="50" alt="Clear Rows" class="uk-preserve-width uk-preserve-height">
               <span class="uk-text-meta uk-text-small">Clear</span>
-
+              <span class="br points">-400</span>
             </button>
           </div>
           <div class="uk-width-1-2 uk-flex uk-flex-center">
             <button id="bonus-3" class="uk-button uk-button-secondary uk-button-small uk-margin-small-bottom bonus-btn">
+              <span class="tr key">3</span>
               <img src="images/unlit-bomb.png" width="50" alt="Bomb" class="uk-preserve-width uk-preserve-height">
               <span class="uk-text-meta uk-text-small">Bomb</span>
+              <span class="br points">-300</span>
             </button>
           </div>
           <div class="uk-width-1-2 uk-flex uk-flex-center">
             <button id="bonus-4" class="uk-button uk-button-secondary uk-button-small uk-margin-small-bottom bonus-btn">
+              <span class="tr key">4</span>
               <img src="images/i-brick.png" width="50" alt="Replace" class="uk-preserve-width uk-preserve-height">
               <span class="uk-text-meta uk-text-small">Replace</span>
+              <span class="br points">-300</span>
             </button>
           </div>
         
@@ -203,6 +210,7 @@
               autocomplete="off"
               required
               value
+              style="background-color: #1a1a1a;color: #ffffff;border: 1px solid #fafafa99;"
               oninvalid="this.setCustomValidity('You must enter your first name')"
               oninput="this.setCustomValidity('')" />
           </div>
@@ -215,6 +223,7 @@
               autocomplete="off"
               required
               value
+              style="background-color: #1a1a1a;color: #ffffff;border: 1px solid #fafafa99;"
               oninvalid="this.setCustomValidity('You must enter your last name')"
               oninput="this.setCustomValidity('')" />
           </div>
@@ -227,6 +236,7 @@
               autocomplete="off"
               required
               value
+              style="background-color: #1a1a1a;color: #ffffff;border: 1px solid #fafafa99;"
               oninvalid="this.setCustomValidity('Please enter your local CEF branch')"
               oninput="this.setCustomValidity('')" />
           </div>					
@@ -285,7 +295,7 @@
     </div>
   </div>	
   
-  <script src="js/tetris.js?v=5"></script>
+  <script src="js/tetris.js?v=12"></script>
 </body>
 </html>
 

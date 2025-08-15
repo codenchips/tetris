@@ -206,12 +206,9 @@ span#time-value {
   }
 
 
-  #scoreboard {
-    display:none;
-  }
   
-  #instructions {
-    display:none;
+  #game-info #instructions {
+    display:none !important;
   }
 
   #bonus-buttons {
@@ -221,6 +218,9 @@ span#time-value {
   #bonus-buttons .uk-width-1-2 {
     width: 100%;
     max-width: 140px;
+  }
+  #bonus-buttons .uk-width-1-2 {
+    margin-top: 13px;
   }
   
   .bonus-btn {
@@ -287,6 +287,25 @@ span#time-value {
   font-size: 13px;
   position: relative;
 } 
+
+span.tr.key {
+    position: absolute;
+    right: -7px;
+    top: -8px;
+    background-color: #292a5aaa;
+    line-height: 115%;
+    padding: 0 6px 1px 4px;
+    border-radius: 10px;
+}
+span.br.points {
+    position: absolute;
+    right: -15px;
+    top: 72px;
+    background-color: #ba2c26a3;
+    line-height: 115%;
+    padding: 0 6px 1px 4px;
+    border-radius: 10px;
+}
 
 
 
