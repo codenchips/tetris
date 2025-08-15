@@ -977,8 +977,9 @@ async function showGameOver() {
         const finalSeconds = Math.floor((gameElapsedTime % 60000) / 1000);
         const finalHundredths = Math.floor((gameElapsedTime % 1000) / 10);
         const finalTimeString = `${finalMinutes.toString().padStart(2, '0')}:${finalSeconds.toString().padStart(2, '0')}.${finalHundredths.toString().padStart(2, '0')}`;
+        const fullName = (score.firstname + ' ' + score.lastname).substring(0, 20);
         
-        $('#scoreboard-body').append('<tr><td>' + score.firstname + ' ' + score.lastname.charAt(0) + '</td><td>' + score.score + '</td><td>' + finalTimeString + '</td></tr>');
+        $('#scoreboard-body').append('<tr><td>' + fullName + '</td><td>' + score.score + '</td><td>' + finalTimeString + '</td></tr>');
       });
     }     
   }
