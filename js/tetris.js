@@ -888,7 +888,7 @@ async function getName() {
     });     
     setTimeout(function() {
       console.log('Showing name modal');
-      UIkit.modal('#enter-name-modal', { stack : true }).show();
+      UIkit.modal('#enter-name-modal', { bgClose: false, escClose: false, stack : true }).show();
       $('#form_name').val("").focus();
     }, 1000);
   });
@@ -899,6 +899,8 @@ async function getEmail() {
     $('#form-get-email').off('submit').on('submit', function(e) {
       e.preventDefault();
       let email = $('#form_email').val();
+
+
       if (email) {        
 
         // has email already been used?
@@ -910,24 +912,16 @@ async function getEmail() {
             data = JSON.parse(data);
             console.log(data);
             if (data.success == '1') {                
-              // $('#email_error').html("Sorry, this email address has already been entered in the competition.").show();;
-              // $('#form_email').val("").focus();
-              // resolve(false);
-
-              // this email is already in teh db but allow it anyway
+              // this email is already in the db but allow it anyway
               $('#player_email').val(email);
               UIkit.modal('#enter-email-modal').hide();
-              $('#overlay').hide();
-              
+              $('#overlay').hide();              
               resolve(email);
-
-
             } else {
               // save the email
               $('#player_email').val(email);
               UIkit.modal('#enter-email-modal').hide();
-              $('#overlay').hide();
-              
+              $('#overlay').hide();              
               resolve(email);
             }
           }
@@ -1081,27 +1075,33 @@ $(document).ready(function() {
     drawPiece();
   });
   
+  $('#cancelemail').on('click', function() {
+    UIkit.modal('#enter-email-modal').hide();
+    //$('#overlay').hide();
+  });
 
-$('#play-now').on('click', async function() {
+  $('#play-now').on('click', async function() {
 
-    const test_mode = false;
-    
-    email = $('#player_email').val();
-    if (!email && !test_mode) {
-      email = await getEmail();
-      while (!email) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+      const test_mode = false;
+      
+      email = $('#player_email').val();
+
+      if (!email) {
+        email = await getEmail();
+        while (!email) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      } else {
+        $('#overlay').hide(); // Hide overlay if email is already set
+        //$('#player_email').val("test@test.com"); // Ensure email is set in the input
       }
-    } else {
-      $('#player_email').val("test@test.com"); // Ensure email is set in the input
-    }
 
 
-    // Start the game
-    gameStarted = true;
-    GameUtils.startTimer();
-    update(); // Start the game loop
-});
+      // Start the game
+      gameStarted = true;
+      GameUtils.startTimer();
+      update(); // Start the game loop
+  });
 
   
   // Mobile touch controls - prevent default touch behavior and add click handlers
