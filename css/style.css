@@ -187,11 +187,11 @@ span#time-value {
   align-items: center;
   justify-content: center;
 }
-#overlay-content {
-    
+#overlay-content {    
     position: absolute;
     background-color: #000000aa;
     width: 380px;
+    margin: 0 10px;
     padding: 10px 5px;
     border-radius: 10px;
     border-color: #eaeaeaaa;
@@ -205,6 +205,10 @@ span#time-value {
     min-width: 75%;
   }
 
+  #overlay-content {    
+      width: 360px;
+      max-width: 360px;
+  }
 
   
   #game-info #instructions {
