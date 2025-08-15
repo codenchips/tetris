@@ -14,6 +14,21 @@ let gameStartTime = null; // When the game was started
 let gameElapsedTime = 0; // Total elapsed time in milliseconds
 let timerInterval = null; // Timer update interval
 
+// Bonus button configuration and state
+const bonusConfig = {
+  slowAmount: 800, // Amount to slow down the game (in milliseconds) - easy to change
+  clearRows: 2,   // Number of rows to clear from bottom (half of 20) - easy to change
+  bombRadius: 2,  // Radius of bomb explosion (4 blocks diameter = 2 radius) - easy to change
+  bombHeight: 3,  // Height of bomb explosion area - easy to change
+  bonusUsed: {
+    'bonus-1': false, // Slow button
+    'bonus-2': false, // Clear button
+    'bonus-3': false, // Bomb button
+    'bonus-4': false, // Replace button (future)
+    'bonus-5': false  // Star button (future)
+  }
+};
+
 // Define colors for each Tetrimino (fallback)
 const colors = [
   null,
@@ -858,6 +873,10 @@ function resetGame() {
   resetPiece();
   lastTime = 0; // Reset lastTime to ensure the drop interval works correctly
   paused = false;
+  
+  // Reset bonus buttons
+  resetBonusButtons();
+  
   GameUtils.resetTimer().updateUI();
   
   // Reset start button
@@ -867,6 +886,343 @@ function resetGame() {
   if (gameStarted) {
     update();
   }
+}
+
+// Function to reset bonus buttons for a new game
+function resetBonusButtons() {
+  // Reset bonus usage tracking
+  Object.keys(bonusConfig.bonusUsed).forEach(buttonId => {
+    bonusConfig.bonusUsed[buttonId] = false;
+  });
+  
+  // Re-enable all bonus buttons
+  $('.bonus-btn').prop('disabled', false).removeClass('used');
+  
+  GameUtils.logGameState('Bonus buttons reset for new game');
+}
+
+// Function to handle bonus button actions
+function activateBonus(buttonId) {
+  // Check if bonus has already been used
+  if (bonusConfig.bonusUsed[buttonId]) {
+    GameUtils.logGameState(`Bonus ${buttonId} already used this game`);
+    return;
+  }
+  
+  // Special check for replace bonus - need an active piece
+  if (buttonId === 'bonus-4' && !currentPiece) {
+    GameUtils.showNotification('No piece to replace! Wait for a piece to be falling.', 'warning');
+    return;
+  }
+  
+  // Mark bonus as used
+  bonusConfig.bonusUsed[buttonId] = true;
+  
+  // Disable the button and mark it as used
+  $(`#${buttonId}`).prop('disabled', true).addClass('used');
+  
+  switch(buttonId) {
+    case 'bonus-1': // SLOW button
+      activateSlowBonus();
+      break;
+    case 'bonus-2': // CLEAR button
+      activateClearBonus();
+      break;
+    case 'bonus-3': // BOMB button
+      activateBombBonus();
+      break;
+    case 'bonus-4': // REPLACE button
+      activateReplaceBonus();
+      break;
+    case 'bonus-5': // Future: STAR button
+      GameUtils.showNotification('Star bonus - Coming soon!', 'info');
+      break;
+    default:
+      GameUtils.logGameState(`Unknown bonus button: ${buttonId}`);
+  }
+}
+
+// Function to activate the slow bonus
+function activateSlowBonus() {
+  const oldInterval = dropInterval;
+  dropInterval += bonusConfig.slowAmount;
+  
+  GameUtils.logGameState(`SLOW bonus activated! Drop interval increased from ${oldInterval}ms to ${dropInterval}ms`)
+    .showNotification(`Game slowed down! Drop speed decreased by ${bonusConfig.slowAmount}ms`, 'success');
+}
+
+// Function to activate the clear bonus
+function activateClearBonus() {
+  const rowsToClear = bonusConfig.clearRows;
+  
+  GameUtils.logGameState(`CLEAR bonus activated! Removing ${rowsToClear} rows from bottom`);
+  
+  // Remove the specified number of rows from the bottom of the board
+  for (let i = 0; i < rowsToClear; i++) {
+    board.pop(); // Remove bottom row
+  }
+  
+  // Add empty rows at the top to maintain board size
+  for (let i = 0; i < rowsToClear; i++) {
+    board.unshift(Array(10).fill(0)); // Add empty row at top
+  }
+  
+  GameUtils.logGameState('Board after clearing bottom rows:', board.map((row, i) => `${i}: [${row.join(',')}]`).join('\n'));
+  
+  // Update placed pieces - remove any pieces that were in the cleared area
+  placedPieces = placedPieces.filter(piece => {
+    const pieceBottom = piece.y + piece.shape.length - 1;
+    const clearedAreaStart = 20 - rowsToClear; // Y coordinate where clearing started
+    
+    // If the piece's bottom is in the cleared area, remove it completely
+    if (pieceBottom >= clearedAreaStart) {
+      GameUtils.logGameState(`Removing piece ${piece.colorIndex} at (${piece.x},${piece.y}) - was in cleared area`);
+      return false;
+    }
+    
+    // If piece extends into cleared area, trim it
+    let pieceAffected = false;
+    let newShape = [...piece.shape.map(row => [...row])]; // Deep copy
+    
+    piece.shape.forEach((row, py) => {
+      const blockY = piece.y + py;
+      if (blockY >= clearedAreaStart) {
+        // This row of the piece was in the cleared area
+        newShape[py] = newShape[py].map(() => 0); // Clear this row
+        pieceAffected = true;
+      }
+    });
+    
+    if (pieceAffected) {
+      // Compact the shape by removing empty rows from bottom
+      while (newShape.length > 0 && newShape[newShape.length - 1].every(value => value === 0)) {
+        newShape.pop();
+      }
+      
+      // If piece still has blocks, update it
+      if (newShape.length > 0 && newShape.some(row => row.some(value => value !== 0))) {
+        piece.shape = newShape;
+        piece.isModified = true;
+        GameUtils.logGameState(`Trimmed piece ${piece.colorIndex} at (${piece.x},${piece.y}) - removed bottom section`);
+      } else {
+        GameUtils.logGameState(`Removing piece ${piece.colorIndex} at (${piece.x},${piece.y}) - completely trimmed`);
+        return false;
+      }
+    }
+    
+    return true;
+  });
+  
+  GameUtils.logGameState('Placed pieces after clearing:', placedPieces.map(p => `Piece ${p.colorIndex} at (${p.x},${p.y})`));
+  
+  // Apply gravity to all remaining pieces
+  applyGravityToPieces();
+  
+  GameUtils.showNotification(`Cleared ${rowsToClear} bottom rows! All pieces above fell down.`, 'success');
+}
+
+// Function to activate the bomb bonus
+function activateBombBonus() {
+  const radius = bonusConfig.bombRadius;
+  const height = bonusConfig.bombHeight;
+  
+  // Find all occupied positions on the board
+  const occupiedPositions = [];
+  board.forEach((row, y) => {
+    row.forEach((value, x) => {
+      if (value !== 0) {
+        occupiedPositions.push({ x, y });
+      }
+    });
+  });
+  
+  if (occupiedPositions.length === 0) {
+    GameUtils.showNotification('No blocks to bomb!', 'warning');
+    return;
+  }
+  
+  // Choose a random occupied position as bomb center
+  const randomIndex = Math.floor(Math.random() * occupiedPositions.length);
+  const bombCenter = occupiedPositions[randomIndex];
+  
+  GameUtils.logGameState(`BOMB bonus activated! Explosion center at (${bombCenter.x}, ${bombCenter.y})`);
+  
+  // Define the circular explosion pattern
+  const explosionBlocks = [];
+  
+  // Create a circular pattern with the specified radius and height
+  for (let dy = 0; dy < height; dy++) {
+    for (let dx = -radius; dx <= radius; dx++) {
+      for (let dz = -radius; dz <= radius; dz++) {
+        // Check if the point is within the circular radius
+        const distance = Math.sqrt(dx * dx + dz * dz);
+        if (distance <= radius) {
+          const explosionX = bombCenter.x + dx;
+          const explosionY = bombCenter.y + dy;
+          
+          // Ensure coordinates are within board bounds
+          if (explosionX >= 0 && explosionX < 10 && explosionY >= 0 && explosionY < 20) {
+            explosionBlocks.push({ x: explosionX, y: explosionY });
+          }
+        }
+      }
+    }
+  }
+  
+  GameUtils.logGameState('Explosion will affect blocks at:', explosionBlocks);
+  
+  // Clear blocks in explosion area from the board
+  explosionBlocks.forEach(pos => {
+    board[pos.y][pos.x] = 0;
+  });
+  
+  // Update placed pieces - remove blocks that are in the explosion area
+  placedPieces = placedPieces.filter(piece => {
+    let pieceAffected = false;
+    let newShape = [...piece.shape.map(row => [...row])]; // Deep copy
+    
+    // Check each block of the piece
+    piece.shape.forEach((row, py) => {
+      row.forEach((value, px) => {
+        if (value) {
+          const blockX = piece.x + px;
+          const blockY = piece.y + py;
+          
+          // Check if this block is in the explosion area
+          const isInExplosion = explosionBlocks.some(explosion => 
+            explosion.x === blockX && explosion.y === blockY
+          );
+          
+          if (isInExplosion) {
+            newShape[py][px] = 0; // Remove this block
+            pieceAffected = true;
+            GameUtils.logGameState(`  Removing block at (${blockX},${blockY}) from piece ${piece.colorIndex}`);
+          }
+        }
+      });
+    });
+    
+    if (pieceAffected) {
+      // Clean up the shape by removing empty rows
+      const compactedShape = compactPieceShape(newShape);
+      
+      // If piece still has blocks, check for structural integrity
+      if (compactedShape.length > 0 && compactedShape.some(row => row.some(value => value !== 0))) {
+        // Find connected components in the modified piece
+        const components = findConnectedComponents(compactedShape, piece.colorIndex);
+        GameUtils.logGameState(`  Found ${components.length} connected components in bombed piece`);
+        
+        if (components.length === 1) {
+          // Single connected piece - just update it
+          piece.shape = compactedShape;
+          piece.isModified = true;
+          GameUtils.logGameState(`  Piece remains intact after bomb, marked as modified`);
+        } else if (components.length > 1) {
+          // Multiple disconnected components - split into separate pieces
+          GameUtils.logGameState(`  Piece split into ${components.length} separate components by bomb`);
+          
+          // Create new pieces for each component (except the first one)
+          for (let i = 1; i < components.length; i++) {
+            const newPiece = createPieceFromComponent(components[i], piece);
+            if (newPiece) {
+              placedPieces.push(newPiece);
+              GameUtils.logGameState(`    Created new piece fragment at (${newPiece.x},${newPiece.y})`);
+            }
+          }
+          
+          // Update the original piece to be the largest component
+          const largestComponent = components.reduce((largest, current) => 
+            current.blocks.length > largest.blocks.length ? current : largest
+          );
+          const largestPiece = createPieceFromComponent(largestComponent, piece);
+          if (largestPiece) {
+            piece.shape = largestPiece.shape;
+            piece.x = largestPiece.x;
+            piece.y = largestPiece.y;
+            piece.isModified = true;
+            GameUtils.logGameState(`    Updated original piece to largest fragment`);
+          } else {
+            GameUtils.logGameState(`    Original piece completely destroyed by bomb`);
+            return false;
+          }
+        } else {
+          // No components found - piece is completely gone
+          GameUtils.logGameState(`  Piece completely destroyed by bomb`);
+          return false;
+        }
+      } else {
+        // Piece is completely gone
+        GameUtils.logGameState(`  Piece completely destroyed by bomb`);
+        return false;
+      }
+    }
+    
+    return true;
+  });
+  
+  GameUtils.logGameState('Placed pieces after bomb explosion:', placedPieces.map(p => `Piece ${p.colorIndex} at (${p.x},${p.y})`));
+  
+  // Apply gravity to all remaining pieces
+  applyGravityToPieces();
+  
+  const blocksDestroyed = explosionBlocks.length;
+  GameUtils.showNotification(`BOOM! Destroyed ${blocksDestroyed} blocks in circular explosion!`, 'success');
+}
+
+// Function to activate the replace bonus
+function activateReplaceBonus() {
+  if (!currentPiece) {
+    GameUtils.showNotification('No piece to replace!', 'warning');
+    return;
+  }
+  
+  // Store the current position
+  const currentX = currentPiece.x;
+  const currentY = currentPiece.y;
+  
+  GameUtils.logGameState(`REPLACE bonus activated! Replacing current piece (type ${currentPiece.colorIndex}) with I-piece`);
+  
+  // Replace with I-piece (index 0 in pieces array, colorIndex 1)
+  const iPieceShape = pieces[0]; // I-piece is at index 0
+  
+  // Create new I-piece at current position
+  const newPiece = {
+    shape: iPieceShape.map(row => [...row]), // Deep copy of I-piece shape
+    x: currentX,
+    y: currentY,
+    colorIndex: 1 // I-piece color index
+  };
+  
+  // Check if the new I-piece fits at the current position
+  const originalCurrentPiece = currentPiece;
+  currentPiece = newPiece;
+  
+  // If it collides or is out of bounds, try to adjust position
+  if (collide() || isOutOfBounds()) {
+    // Try to center the I-piece horizontally
+    currentPiece.x = Math.max(0, Math.min(6, currentX - 1)); // Center I-piece (4 blocks wide)
+    
+    // If still colliding, try moving up
+    if (collide() || isOutOfBounds()) {
+      currentPiece.y = Math.max(0, currentY - 1);
+      
+      // If still problematic, place at top center as fallback
+      if (collide() || isOutOfBounds()) {
+        currentPiece.x = 3; // Center position
+        currentPiece.y = 0; // Top of board
+        
+        // Final check - if this position is also invalid, revert
+        if (collide()) {
+          currentPiece = originalCurrentPiece;
+          GameUtils.showNotification('Cannot replace piece - no room for I-piece!', 'warning');
+          return;
+        }
+      }
+    }
+  }
+  
+  GameUtils.logGameState(`Successfully replaced piece! New I-piece at (${currentPiece.x}, ${currentPiece.y})`);
+  GameUtils.showNotification('Piece replaced with I-piece!', 'success');
 }
 
 
@@ -1232,6 +1588,19 @@ $(document).ready(function() {
         $('#pause').find('i').removeClass('fa-play').addClass('fa-pause');
         break;
     }
+  });
+
+  // Bonus button click handlers
+  $('.bonus-btn').on('click', function(e) {
+    e.preventDefault();
+    
+    if (!gameStarted || paused) {
+      GameUtils.showNotification('Start the game first to use bonus buttons!', 'warning');
+      return;
+    }
+    
+    const buttonId = this.id;
+    activateBonus(buttonId);
   });
   
   // Add visual feedback for button presses

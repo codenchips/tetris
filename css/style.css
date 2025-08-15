@@ -103,6 +103,19 @@ h1,h2,h3,h4,h5,h6,p,small,span {
   cursor: not-allowed;
 }
 
+.bonus-btn.used {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: rgba(100, 100, 100, 0.1);
+  border-color: rgba(150, 150, 150, 0.3);
+}
+
+.bonus-btn.used:hover {
+  transform: none;
+  box-shadow: none;
+  background: rgba(100, 100, 100, 0.1);
+}
+
 .bonus-btn i {
   font-size: 16px;
   margin-bottom: 10px;
