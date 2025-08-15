@@ -984,10 +984,6 @@ async function showGameOver() {
     }     
   }
 
-  function updateScoreBoard(score, name, time) {
-    // Show the score and elapsed time on the screen
-    $('#scores').append('<p>UNUSED' + score + ' - ' + name + ' (' + time + 's)</p>');
-  }
 
   function getScores() {
     // save the score to the database
