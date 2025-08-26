@@ -1,6 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-60NYLF3B3X"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-60NYLF3B3X');
+  </script>
+
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-NT9B5W9');</script>
+    <!-- End Google Tag Manager -->    
+  
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tetris Game</title>
@@ -17,9 +35,16 @@
     <script src="https://cdn.jsdelivr.net/npm/uikit@3.17.11/dist/js/uikit-icons.min.js"></script>    
 
     <link rel="stylesheet" href="css/style.css?v=14">
+
+
     
 </head>
 <body>
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NT9B5W9"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
+
   <input type="hidden" id="game_mode" value="compete" />
 	<input type="hidden" id="player_email" value="" />
 
@@ -44,15 +69,15 @@
         <div class="uk-width-1-2 mobile-controls uk-margin-remove-bottom">        
           <!-- Action Controls -->
           <div class="uk-flex uk-flex-center controls-left">
-            <button id="move-left" class="control-btn uk-button uk-button-default uk-button-small">
+            <button id="move-left" class="control-btn uk-button uk-button-default uk-button-small btn_control-left">
               <i class="fas fa-chevron-left"></i>
             </button>
-            <button id="move-right" class="control-btn uk-button uk-button-default uk-button-small">
+            <button id="move-right" class="control-btn uk-button uk-button-default uk-button-small btn_control-right">
               <i class="fas fa-chevron-right"></i>
             </button>
           </div>                 
           <div class="uk-flex uk-flex-center uk-margin-remove-bottom controls-left">
-            <button id="move-down" class="control-btn uk-button uk-button-default uk-button-small">
+            <button id="move-down" class="control-btn uk-button uk-button-default uk-button-small btn_control-down">
               <i class="fas fa-chevron-down"></i>
             </button>          
           </div>
@@ -74,13 +99,13 @@
             <button id="start" class="control-btn start-btn uk-button uk-button-primary uk-button-small" style="visibility: hidden;">
               <i class="fas fa-play"></i>
             </button>            
-            <button id="rotate" class="control-btn uk-button uk-button-default uk-button-small">
+            <button id="rotate" class="control-btn uk-button uk-button-default uk-button-small btn_control-rotate">
               <i class="fas fa-redo"></i>
             </button>     
           </div>
                   
           <div class="uk-flex uk-flex-center uk-margin-remove-bottom  controls-right">
-            <button id="drop" class="control-btn uk-button uk-button-default uk-button-small">
+            <button id="drop" class="control-btn uk-button uk-button-default uk-button-small btn_conntrol-drop">
               <i class="fas fa-angle-double-down"></i>
             </button>         
           </div>
@@ -97,7 +122,7 @@
     <div id="game-info" class="uk-width-1-1 uk-margin-top">
 
       <div id="instructions">
-        <h1 class="uk-text-center">Block Game</h1>
+        <h1 class="uk-text-center">Blox1</h1>
         <p class="uk-text-center">Use the controls below to play the game. The objective is to score as many points as possible by clearing lines.</p>
         <br>
       </div>
@@ -117,33 +142,33 @@
             </button>
           </div>
           <div class="uk-width-1-2 uk-flex uk-flex-center">
-            <button id="bonus-1" class="uk-button uk-button-secondary uk-button-small uk-margin-small-bottom bonus-btn">
+            <button id="bonus-1" class="uk-button uk-button-secondary uk-button-small uk-margin-small-bottom bonus-btn  btn_bonus-slow">
               <span class="tr key">1</span>
-              <img src="images/snail.png" width="50" alt="Slow Bonus" class="uk-preserve-width uk-preserve-height">
-              <span class="uk-text-meta uk-text-small">Slow</span>
+              <img src="images/thermometer-cold.png" width="50" alt="Slow Bonus" class="btn_bonus-slow uk-preserve-width uk-preserve-height">
+              <span class="uk-text-meta uk-text-small">Cooler</span>
               <span class="br points">-500</span>
             </button>
           </div>
           <div class="uk-width-1-2 uk-flex uk-flex-center">
-            <button id="bonus-2" class="uk-button uk-button-secondary uk-button-small uk-margin-small-bottom bonus-btn">
+            <button id="bonus-2" class="uk-button uk-button-secondary uk-button-small uk-margin-small-bottom bonus-btn btn_bonus-clear">
               <span class="tr key">2</span>
-              <img src="images/broken-wall.png" width="50" alt="Clear Rows" class="uk-preserve-width uk-preserve-height">
+              <img src="images/broken-wall.png" width="50" alt="Clear Rows" class="btn_bonus-clear uk-preserve-width uk-preserve-height">
               <span class="uk-text-meta uk-text-small">Clear</span>
               <span class="br points">-400</span>
             </button>
           </div>
           <div class="uk-width-1-2 uk-flex uk-flex-center">
-            <button id="bonus-3" class="uk-button uk-button-secondary uk-button-small uk-margin-small-bottom bonus-btn">
+            <button id="bonus-3" class="uk-button uk-button-secondary uk-button-small uk-margin-small-bottom bonus-btn btn_bonus-bomb">
               <span class="tr key">3</span>
-              <img src="images/unlit-bomb.png" width="50" alt="Bomb" class="uk-preserve-width uk-preserve-height">
+              <img src="images/unlit-bomb.png" width="50" alt="Bomb" class="btn_bonus-bomb uk-preserve-width uk-preserve-height">
               <span class="uk-text-meta uk-text-small">Bomb</span>
               <span class="br points">-300</span>
             </button>
           </div>
           <div class="uk-width-1-2 uk-flex uk-flex-center">
-            <button id="bonus-4" class="uk-button uk-button-secondary uk-button-small uk-margin-small-bottom bonus-btn">
+            <button id="bonus-4" class="uk-button uk-button-secondary uk-button-small uk-margin-small-bottom bonus-btn btn_bonus-replace">
               <span class="tr key">4</span>
-              <img src="images/i-brick.png" width="50" alt="Replace" class="uk-preserve-width uk-preserve-height">
+              <img src="images/i-brick.png" width="50" alt="Replace" class="btn_bonus-replace uk-preserve-width uk-preserve-height">
               <span class="uk-text-meta uk-text-small">Replace</span>
               <span class="br points">-300</span>
             </button>
@@ -158,10 +183,10 @@
     <div id="overlay" class="uk-width-1-1 uk-margin-top">
       <div id="overlay-content">
       <div id="instructions">
-        <h1 class="uk-text-center">Block Game</h1>                
+        <h1 class="uk-text-center">Blox1</h1>                
         <p class="uk-text-center">Some intro text here...</p>
 
-        <button id="play-now" class="start-btn uk-button uk-button-secondary uk-button-small ">
+        <button id="play-now" class="start-btn uk-button uk-button-secondary uk-button-small btn_play-now">
           <i class="fas fa-play"></i> Play Now
         </button>               
       </div>
@@ -245,7 +270,7 @@
           <div class="uk-width-1-1">
 
             <div class="form-actions">
-              <button id="savename" type="submit" class="uk-button uk-button-primary">Submit</button>							
+              <button id="savename" type="submit" class="uk-button uk-button-primary btn_save-name">Submit</button>							
             </div>
           </div>
         </div>
@@ -286,8 +311,8 @@
 
           <div class="uk-width-1-1" style="margin-top: 0;">
             <div class="form-actions">
-              <button id="cancelemail" type="button" class="uk-button uk-button-danger">Cancel</button>							
-              <button id="saveemail" type="submit" class="uk-button uk-button-primary">Let's Play!</button>							
+              <button id="__  cancelemail" type="button" class="uk-button uk-button-danger btn_cancel">Cancel</button>							
+              <button id="__saveemail" type="submit" class="uk-button uk-button-primary btn_start-game">Let's Play!</button>							
             </div>
           </div>
         </div>

@@ -60,32 +60,59 @@ const luminaireImageUrls = {
   7: 'images/t-luminaire.png'     // T piece - T-shaped luminaire
 };
 
+const bgTemps = {
+  1: 'images/lantern-overlay-off-small-5000.webp',
+  2: 'images/lantern-overlay-off-small-4000.webp',
+  3: 'images/lantern-overlay-off-small-3000.webp'
+}
+
+// Background temperature images for different levels
+const bgTempImages = {};
+
 // Store piece image data for each placed piece
 let placedPieces = [];
 let imagesLoaded = false;
 
-// Load all luminaire images
+// Load all luminaire images and background temperature images
 function loadImages() {
-  return Promise.all(
-    Object.entries(luminaireImageUrls).map(([key, url]) => {
-      return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => {
-          luminaireImages[key] = img;
-          resolve();
-        };
-        img.onerror = (error) => {
-          GameUtils.showNotification(`Failed to load image ${url}, will use color fallback`, 'warning');
-          resolve(); // Continue even if image fails to load
-        };
-        img.src = url;
-      });
-    })
-  ).then(() => {
+  // Load luminaire images
+  const luminairePromises = Object.entries(luminaireImageUrls).map(([key, url]) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        luminaireImages[key] = img;
+        resolve();
+      };
+      img.onerror = (error) => {
+        GameUtils.showNotification(`Failed to load luminaire image ${url}, will use color fallback`, 'warning');
+        resolve(); // Continue even if image fails to load
+      };
+      img.src = url;
+    });
+  });
+
+  // Load background temperature images
+  const bgTempPromises = Object.entries(bgTemps).map(([key, url]) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        bgTempImages[key] = img;
+        resolve();
+      };
+      img.onerror = (error) => {
+        GameUtils.showNotification(`Failed to load background image ${url}, will use fallback`, 'warning');
+        resolve(); // Continue even if image fails to load
+      };
+      img.src = url;
+    });
+  });
+
+  // Wait for both luminaire and background images to load
+  return Promise.all([...luminairePromises, ...bgTempPromises]).then(() => {
     imagesLoaded = true;
-    GameUtils.showNotification('Luminaire images loaded successfully', 'success');
+    GameUtils.showNotification('All images loaded successfully', 'success');
   }).catch((error) => {
-    GameUtils.showNotification('Some images failed to load, using color fallback', 'warning');
+    GameUtils.showNotification('Some images failed to load, using fallbacks', 'warning');
     imagesLoaded = false;
   });
 }
@@ -1515,6 +1542,35 @@ $(document).on('keydown', function(event) {
 });
 
 
+function setBGTemp(level) {
+  if (level) {
+    // make sure leevel is a string
+    //level = level.toString();
+    const bgImage = bgTempImages[level];
+    if (bgImage) {
+      console.log('Setting background image to', bgImage.src);
+      $('.game-wrapper').css('background-image', `url(${bgImage.src})`);
+    } 
+  }
+}
+
+// Function to cycle through background temperatures before game start
+async function cycleBGTemps() {
+  const cycleDelay = 100; // 1/10 second (100ms) delay between changes
+  const sequence = [1, 2, 3, 3, 2, 1, 1, 2, 3, 3, 2, 1, 2, 3, 3, 2, 1, 1]; // Cycle from 3->1 then 1->3
+  
+  GameUtils.showNotification('Initializing background themes...', 'info');
+  
+  for (let i = 0; i < sequence.length; i++) {
+    setBGTemp(sequence[i]);
+    await new Promise(resolve => setTimeout(resolve, cycleDelay));
+  }
+  
+  // Set final background to level 1 for game start
+  setBGTemp(1);
+  GameUtils.showNotification('Background initialization complete!', 'success');
+}
+
 // Start the game - load images first using jQuery patterns
 $(document).ready(function() {
    
@@ -1541,9 +1597,8 @@ $(document).ready(function() {
   });
 
   $('#play-now').on('click', async function() {
-
       const test_mode = false;
-      
+     
       email = $('#player_email').val();
 
       if (!email) {
@@ -1552,10 +1607,11 @@ $(document).ready(function() {
           await new Promise(resolve => setTimeout(resolve, 100));
         }
       } else {
-        $('#overlay').hide(); // Hide overlay if email is already set
-        //$('#player_email').val("test@test.com"); // Ensure email is set in the input
+        $('#overlay').hide(); // Hide overlay if email is already set        
       }
 
+      // Cycle through background colors before starting the game
+      await cycleBGTemps();
 
       // Start the game
       gameStarted = true;
