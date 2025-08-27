@@ -132,6 +132,7 @@ function drawLuminaire(ctx, piece, offsetX = 0, offsetY = 0) {
   // If so, fall back to colored blocks for better visual consistency
   const isModifiedPiece = piece.isModified || false;
   
+  
   if (!isModifiedPiece && imagesLoaded && luminaireImages[piece.colorIndex]) {
     // Calculate the bounding box of the piece shape
     const bounds = getPieceBounds(piece.shape);
@@ -305,7 +306,7 @@ function drawPiece() {
 // Function to draw the drop indicator (where the piece will land)
 function drawDropIndicator() {
   const dropPosition = getDropPosition();
-  context.fillStyle = 'rgba(194, 202, 236, 0.25)'; // Semi-transparent white
+  context.fillStyle = 'rgba(4, 59, 11, 0.72)'; // Semi-transparent white
   currentPiece.shape.forEach((row, y) => {
     row.forEach((value, x) => {
       if (value) {
