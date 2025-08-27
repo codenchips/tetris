@@ -36,28 +36,28 @@ const bonusConfig = {
   }
 };
 
-// Define colors for each Tetrimino (fallback)
+// Define colors for each Tetrimino with enhanced 3D color schemes
 const colors = [
   null,
-  'blue', // I
-  'blue', // O
-  'blue', // S
-  'blue', // Z
-  'blue', // L
-  'blue', // J
-  'blue' // T
+  { base: '#FF4444', light: '#FF7777', dark: '#BB2222', shadow: '#881111' }, // I - Red
+  { base: '#44FF44', light: '#77FF77', dark: '#22BB22', shadow: '#118811' }, // O - Green  
+  { base: '#4444FF', light: '#7777FF', dark: '#2222BB', shadow: '#111188' }, // S - Blue
+  { base: '#FFFF44', light: '#FFFF77', dark: '#BBBB22', shadow: '#888811' }, // Z - Yellow
+  { base: '#FF44FF', light: '#FF77FF', dark: '#BB22BB', shadow: '#881188' }, // L - Magenta
+  { base: '#8844FF', light: '#AA77FF', dark: '#5522BB', shadow: '#331188' }, // J - Purple
+  { base: '#44FFFF', light: '#77FFFF', dark: '#22BBBB', shadow: '#118888' }  // T - Cyan
 ];
 
 // Luminaire images for each piece type
 const luminaireImages = {};
 const luminaireImageUrls = {
-  1: 'images/i-luminaire.png',    // I piece - linear luminaire
-  2: 'images/o-luminaire.png',    // O piece - square luminaire
-  3: 'images/s-luminaire.png',    // S piece - S-shaped luminaire
-  4: 'images/z-luminaire.png',    // Z piece - Z-shaped luminaire
-  5: 'images/l-luminaire.png',    // L piece - L-shaped luminaire
-  6: 'images/j-luminaire.png',    // J piece - J-shaped luminaire
-  7: 'images/t-luminaire.png'     // T piece - T-shaped luminaire
+  1: 'images/i-luminaire.png1',    // I piece - linear luminaire
+  2: 'images/o-luminaire.png1',    // O piece - square luminaire
+  3: 'images/s-luminaire.png1',    // S piece - S-shaped luminaire
+  4: 'images/z-luminaire.png1',    // Z piece - Z-shaped luminaire
+  5: 'images/l-luminaire.png1',    // L piece - L-shaped luminaire
+  6: 'images/j-luminaire.png1',    // J piece - J-shaped luminaire
+  7: 'images/t-luminaire.png1'     // T piece - T-shaped luminaire
 };
 
 const bgTemps = {
@@ -117,84 +117,95 @@ function loadImages() {
   });
 }
 
-// Helper function to draw a single block (color only for collision detection)
+// Helper function to draw a single 3D beveled block
 function drawBlock(ctx, blockType, x, y, width = 1, height = 1) {
-  if (blockType) {
-    // Always use solid color for individual blocks (used for fallback and collision visualization)
-    ctx.fillStyle = colors[blockType];
+  if (blockType && colors[blockType]) {
+    const colorScheme = colors[blockType];
+    const bevelSize = 0.1; // Size of the bevel edge (10% of block size)
+    
+    // Draw main block face
+    ctx.fillStyle = colorScheme.base;
     ctx.fillRect(x, y, width, height);
+    
+    // Draw top bevel (light highlight)
+    ctx.fillStyle = colorScheme.light;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + width, y);
+    ctx.lineTo(x + width - bevelSize, y + bevelSize);
+    ctx.lineTo(x + bevelSize, y + bevelSize);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Draw left bevel (light highlight)
+    ctx.fillStyle = colorScheme.light;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + bevelSize, y + bevelSize);
+    ctx.lineTo(x + bevelSize, y + height - bevelSize);
+    ctx.lineTo(x, y + height);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Draw right bevel (dark shadow)
+    ctx.fillStyle = colorScheme.dark;
+    ctx.beginPath();
+    ctx.moveTo(x + width, y);
+    ctx.lineTo(x + width, y + height);
+    ctx.lineTo(x + width - bevelSize, y + height - bevelSize);
+    ctx.lineTo(x + width - bevelSize, y + bevelSize);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Draw bottom bevel (dark shadow)
+    ctx.fillStyle = colorScheme.dark;
+    ctx.beginPath();
+    ctx.moveTo(x, y + height);
+    ctx.lineTo(x + bevelSize, y + height - bevelSize);
+    ctx.lineTo(x + width - bevelSize, y + height - bevelSize);
+    ctx.lineTo(x + width, y + height);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Draw bottom-right corner shadow (deepest shadow)
+    ctx.fillStyle = colorScheme.shadow;
+    ctx.beginPath();
+    ctx.moveTo(x + width - bevelSize, y + height - bevelSize);
+    ctx.lineTo(x + width, y + height);
+    ctx.lineTo(x + width, y + height - bevelSize);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Draw bottom-right corner shadow (deepest shadow)
+    ctx.fillStyle = colorScheme.shadow;
+    ctx.beginPath();
+    ctx.moveTo(x + width - bevelSize, y + height - bevelSize);
+    ctx.lineTo(x + width, y + height);
+    ctx.lineTo(x + width - bevelSize, y + height);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Add subtle inner shadow line for extra depth
+    ctx.strokeStyle = colorScheme.shadow;
+    ctx.lineWidth = 0.02;
+    ctx.beginPath();
+    ctx.moveTo(x + bevelSize, y + bevelSize);
+    ctx.lineTo(x + width - bevelSize, y + bevelSize);
+    ctx.lineTo(x + width - bevelSize, y + height - bevelSize);
+    ctx.stroke();
   }
 }
 
-// Helper function to draw a complete luminaire piece
+// Helper function to draw a complete piece using 3D beveled blocks
 function drawLuminaire(ctx, piece, offsetX = 0, offsetY = 0) {
-  // Check if this piece has been modified by line clearing
-  // If so, fall back to colored blocks for better visual consistency
-  const isModifiedPiece = piece.isModified || false;
-  
-  
-  if (!isModifiedPiece && imagesLoaded && luminaireImages[piece.colorIndex]) {
-    // Calculate the bounding box of the piece shape
-    const bounds = getPieceBounds(piece.shape);
-    
-    // Use stored rotation if available, otherwise calculate it
-    let rotation = piece.rotation;
-    if (rotation === undefined) {
-      // For current piece, calculate rotation dynamically
-      const originalPiece = pieces[piece.colorIndex - 1];
-      rotation = getRotationAngle(originalPiece, piece.shape);
-    }
-    
-    const drawX = (piece.x + offsetX);
-    const drawY = (piece.y + offsetY);
-    
-    if (rotation !== 0) {
-      // Save the current canvas state
-      ctx.save();
-      
-      // Move to the center of where we want to draw the piece
-      const centerX = drawX + bounds.width / 2;
-      const centerY = drawY + bounds.height / 2;
-      ctx.translate(centerX, centerY);
-      
-      // Rotate the canvas
-      ctx.rotate(rotation * Math.PI / 180);
-      
-      // Get original bounds for the image
-      const originalPiece = pieces[piece.colorIndex - 1];
-      const originalBounds = getPieceBounds(originalPiece);
-      
-      // Draw the image centered at the origin
-      ctx.drawImage(
-        luminaireImages[piece.colorIndex],
-        -originalBounds.width / 2,
-        -originalBounds.height / 2,
-        originalBounds.width,
-        originalBounds.height
-      );
-      
-      // Restore the canvas state
-      ctx.restore();
-    } else {
-      // No rotation needed, draw normally
-      ctx.drawImage(
-        luminaireImages[piece.colorIndex],
-        drawX,
-        drawY,
-        bounds.width,
-        bounds.height
-      );
-    }
-  } else {
-    // Fallback: draw individual colored blocks (for modified pieces or when images fail)
-    piece.shape.forEach((row, y) => {
-      row.forEach((value, x) => {
-        if (value) {
-          drawBlock(ctx, piece.colorIndex, piece.x + x + offsetX, piece.y + y + offsetY);
-        }
-      });
+  // Always use 3D beveled blocks for a consistent modern look
+  piece.shape.forEach((row, y) => {
+    row.forEach((value, x) => {
+      if (value) {
+        drawBlock(ctx, piece.colorIndex, piece.x + x + offsetX, piece.y + y + offsetY);
+      }
     });
-  }
+  });
 }
 
 // Function to determine rotation angle by comparing shapes
@@ -306,14 +317,68 @@ function drawPiece() {
 // Function to draw the drop indicator (where the piece will land)
 function drawDropIndicator() {
   const dropPosition = getDropPosition();
-  context.fillStyle = 'rgba(4, 59, 11, 0.72)'; // Semi-transparent white
-  currentPiece.shape.forEach((row, y) => {
-    row.forEach((value, x) => {
-      if (value) {
-        context.fillRect(dropPosition.x + x, dropPosition.y + y, 1, 1);
-      }
+  
+  // Create a semi-transparent version of the current piece's color scheme
+  if (currentPiece && colors[currentPiece.colorIndex]) {
+    const colorScheme = colors[currentPiece.colorIndex];
+    const alpha = 0.6; // Increased transparency level for better visibility
+    
+    currentPiece.shape.forEach((row, y) => {
+      row.forEach((value, x) => {
+        if (value) {
+          const blockX = dropPosition.x + x;
+          const blockY = dropPosition.y + y;
+          const bevelSize = 0.1;
+          
+          // Draw semi-transparent main face
+          context.fillStyle = colorScheme.base + Math.floor(255 * alpha).toString(16).padStart(2, '0');
+          context.fillRect(blockX, blockY, 1, 1);
+          
+          // Draw stronger bevel highlights for better visibility
+          context.fillStyle = colorScheme.light + Math.floor(255 * alpha * 0.8).toString(16).padStart(2, '0');
+          
+          // Top bevel
+          context.beginPath();
+          context.moveTo(blockX, blockY);
+          context.lineTo(blockX + 1, blockY);
+          context.lineTo(blockX + 1 - bevelSize, blockY + bevelSize);
+          context.lineTo(blockX + bevelSize, blockY + bevelSize);
+          context.closePath();
+          context.fill();
+          
+          // Left bevel  
+          context.beginPath();
+          context.moveTo(blockX, blockY);
+          context.lineTo(blockX + bevelSize, blockY + bevelSize);
+          context.lineTo(blockX + bevelSize, blockY + 1 - bevelSize);
+          context.lineTo(blockX, blockY + 1);
+          context.closePath();
+          context.fill();
+          
+          // Add darker shadow bevels for more definition
+          context.fillStyle = colorScheme.dark + Math.floor(255 * alpha * 0.6).toString(16).padStart(2, '0');
+          
+          // Right bevel shadow
+          context.beginPath();
+          context.moveTo(blockX + 1, blockY);
+          context.lineTo(blockX + 1, blockY + 1);
+          context.lineTo(blockX + 1 - bevelSize, blockY + 1 - bevelSize);
+          context.lineTo(blockX + 1 - bevelSize, blockY + bevelSize);
+          context.closePath();
+          context.fill();
+          
+          // Bottom bevel shadow
+          context.beginPath();
+          context.moveTo(blockX, blockY + 1);
+          context.lineTo(blockX + bevelSize, blockY + 1 - bevelSize);
+          context.lineTo(blockX + 1 - bevelSize, blockY + 1 - bevelSize);
+          context.lineTo(blockX + 1, blockY + 1);
+          context.closePath();
+          context.fill();
+        }
+      });
     });
-  });
+  }
 }
 
 // Update the score display in the DOM
