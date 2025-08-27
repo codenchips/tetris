@@ -39,13 +39,13 @@ const bonusConfig = {
 // Define colors for each Tetrimino with enhanced 3D color schemes
 const colors = [
   null,
-  { base: '#FF4444', light: '#FF7777', dark: '#BB2222', shadow: '#881111' }, // I - Red
-  { base: '#44FF44', light: '#77FF77', dark: '#22BB22', shadow: '#118811' }, // O - Green  
-  { base: '#4444FF', light: '#7777FF', dark: '#2222BB', shadow: '#111188' }, // S - Blue
-  { base: '#FFFF44', light: '#FFFF77', dark: '#BBBB22', shadow: '#888811' }, // Z - Yellow
-  { base: '#FF44FF', light: '#FF77FF', dark: '#BB22BB', shadow: '#881188' }, // L - Magenta
-  { base: '#8844FF', light: '#AA77FF', dark: '#5522BB', shadow: '#331188' }, // J - Purple
-  { base: '#44FFFF', light: '#77FFFF', dark: '#22BBBB', shadow: '#118888' }  // T - Cyan
+  { base: '#CC2222', light: '#FF4444', dark: '#882222', shadow: '#441111' }, // I - Red
+  { base: '#22CC22', light: '#44FF44', dark: '#228822', shadow: '#114411' }, // O - Green  
+  { base: '#2222CC', light: '#4444FF', dark: '#222288', shadow: '#111144' }, // S - Blue
+  { base: '#CCCC22', light: '#FFFF44', dark: '#888822', shadow: '#444411' }, // Z - Yellow
+  { base: '#CC22CC', light: '#FF44FF', dark: '#882288', shadow: '#441144' }, // L - Magenta
+  { base: '#5522CC', light: '#8844FF', dark: '#332288', shadow: '#221144' }, // J - Purple
+  { base: '#22CCCC', light: '#44FFFF', dark: '#228888', shadow: '#114444' }  // T - Cyan
 ];
 
 // Luminaire images for each piece type
