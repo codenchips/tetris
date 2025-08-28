@@ -67,7 +67,8 @@ h1,h2,h3,h4,h5,h6,p,small,span {
     border-radius: 5px; */
     background-color: #696969d0;
     margin-bottom: 32px;
-    border-radius: 0 0 10px 10px;
+    border-radius: 10px 10px 0px 0px;
+    border-bottom: 1px solid #fafafa99;
 
     -webkit-box-shadow: 15px 2px 20px 0px rgba(61,61,61,0.4), -15px 2px 20px 0px rgba(61,61,61,0.4); 
     box-shadow: 15px 2px 20px 0px rgba(61,61,61,0.4), -15px 2px 20px 0px rgba(61,61,61,0.4);
@@ -181,6 +182,12 @@ span#time-value {
   font-size: 16px;
 }
 
+form label.uk-form-label {
+  font-size: 16px;
+  margin-bottom: 5px;
+  display: block;
+  color: #fff;
+}
 
 #overlay {
 
@@ -266,7 +273,7 @@ span#time-value {
 
 .control-btn {
   background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: #000000;
   color: #ffffff;
   border-radius: 8px;
   width: 70px;
@@ -279,12 +286,13 @@ span#time-value {
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   backdrop-filter: blur(5px);
+  box-shadow: 7px 6px 2px 1px rgba(0, 0, 0, 0.3);  
 }
 
 .control-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(2px);
+    box-shadow: 1px 1px 2px 2px rgba(0, 0, 0, 0.3);
 }
 
 .control-btn:active,
@@ -353,7 +361,10 @@ span.br.points {
 #scoreboard .uk-table td {
   padding: 3px 0;
 }
-
+#scoreboard-body tr.highlighted {
+  background-color: #28a74555;  
+  border-radius: 5px;
+}
 
 button#savename,
 button#play-now,
