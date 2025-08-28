@@ -1514,9 +1514,10 @@ async function showGameOver() {
 
   function renderScores(scores, position) {        
     let thisPosition = 0;
+    const showTop = (position && position >= 10) ? 10 : 10; // if position is in top 10, show top 10
     if (scores) {
       $('#scoreboard-body').empty();
-      scores.slice(0, 10).forEach(function(score) {        
+      scores.slice(0, showTop).forEach(function(score) {        
         thisPosition++;
         gameElapsedTime = score.time; // Use the time from the score
         const finalMinutes = Math.floor(gameElapsedTime / 60000);
@@ -1537,7 +1538,7 @@ async function showGameOver() {
         const finalHundredths = Math.floor((gameElapsedTime % 1000) / 10);
         const finalTimeString = `${finalMinutes.toString().padStart(2, '0')}:${finalSeconds.toString().padStart(2, '0')}.${finalHundredths.toString().padStart(2, '0')}`;
         const fullName = (scores[position - 1].firstname + ' ' + scores[position - 1].lastname).substring(0, 20);        
-        $('#lower-scoreboard').html('<table class="uk-table  score-table">'+
+        $('#lower-scoreboard').html('<table style="margin-top:10px;" class="uk-table  score-table">'+
           '<tbody id="scoreboard-body">'+
           '<tr class="highlighted"><td style="width:32px;">' + position + '</td><td style="width:60%;">' + fullName + '</td><td style="min-width:50px;">' + scores[position - 1].score + '&nbsp;&nbsp;</td><td align="right">' + finalTimeString + '</td></tr>'+
           '</tbody>'+

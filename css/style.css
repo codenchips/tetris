@@ -368,6 +368,7 @@ span.br.points {
 
 button#savename,
 button#play-now,
+button#__saveemail,
 button#saveemail {
   margin: 20px 0 5px 0;;
   background: rgba(40, 167, 69, 0.9); 
@@ -376,8 +377,8 @@ button#saveemail {
   border-radius: 5px;
   padding: 5px 15px;
 }
-button#cancelemail {
-  margin: 20px 15px 5px 0;;
+button#__cancelemail {
+  margin: 20px 0 5px 0;
   background: #f0506e;
   border: 1px solid #f0506e;
   font-size: 22px;
@@ -401,6 +402,10 @@ button#play-now i {
   cursor: not-allowed;
 }
 
+
+table.uk-table {
+  margin-bottom: 0;
+}
 .score-table th {
   padding: 0;
   color: #fff;
