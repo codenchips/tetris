@@ -4,6 +4,7 @@ context.scale(20, 20); // Scale the canvas for easier drawing
 
 let board = Array.from({ length: 20 }, () => Array(10).fill(0));
 let currentPiece;
+let lastPlacedPiece = null; // Track the last placed piece for effects
 let dropInterval = 700;
 let speedIncreasePerLine = 20; // Speed increase per line cleared
 let lastTime = 0;
@@ -392,6 +393,15 @@ function merge() {
   const originalPiece = pieces[currentPiece.colorIndex - 1];
   const rotation = getRotationAngle(originalPiece, currentPiece.shape);
   
+  // Store the last placed piece for effects
+  lastPlacedPiece = {
+    shape: currentPiece.shape,
+    x: currentPiece.x,
+    y: currentPiece.y,
+    colorIndex: currentPiece.colorIndex,
+    rotation: rotation
+  };
+  
   // Add the complete piece to the placed pieces array with rotation info
   placedPieces.push({
     shape: currentPiece.shape,
@@ -698,6 +708,8 @@ function clearLines() {
     board.unshift(Array(10).fill(0)); // Add a new empty row at the top
   });
   
+  celebrateLineClears(clearedLines.length);
+
   GameUtils.logGameState('Board after line removal:', board.map((row, i) => `${i}: [${row.join(',')}]`).join('\n'));
   
   // Update placed pieces based on cleared lines
@@ -1657,6 +1669,71 @@ async function cycleBGTemps() {
   // Set final background to level 1 for game start
   setBGTemp(1);
   GameUtils.showNotification('Background initialization complete!', 'success');
+}
+
+
+// Helper function to convert game coordinates to screen coordinates for effects
+function getScreenPosition(gameX, gameY) {
+  const canvas = $('#tetris')[0];
+  const rect = canvas.getBoundingClientRect();
+  
+  // Game coordinates are scaled by 20 (context.scale(20, 20))
+  // Canvas is 200x400, so each game unit is 10px on screen (200/20 = 10)
+  const blockSize = rect.width / 10; // Canvas width divided by game width (10 blocks)
+  
+  // Calculate screen position relative to viewport
+  const screenX = rect.left + (gameX * blockSize) + (blockSize / 2); // Center of block
+  const screenY = rect.top + (gameY * blockSize) + (blockSize / 2);  // Center of block
+  
+  // Convert to confetti origin coordinates (0-1 scale relative to viewport)
+  return {
+    x: screenX / window.innerWidth,
+    y: screenY / window.innerHeight
+  };
+}
+
+// Example usage for line clear celebration
+function celebrateLineClears(linesCleared) {
+  let origin = { x: 0.5, y: 0.6 }; // Default center position
+  
+  // Use last placed piece position if available
+  if (lastPlacedPiece) {
+    // Calculate center of the piece
+    const bounds = getPieceBounds(lastPlacedPiece.shape);
+    const centerX = lastPlacedPiece.x + bounds.width / 2;
+    const centerY = lastPlacedPiece.y + bounds.height / 2;
+    
+    origin = getScreenPosition(centerX, centerY);
+  }
+  
+  if (linesCleared >= 4) {
+    // TETRIS! Big celebration
+    confetti({
+      spread: 360,
+      ticks: 50,
+      gravity: 0,
+      decay: 0.94,
+      startVelocity: 30,
+      colors: ['FFE400', 'FFBD00', 'E89400', 'FFCA6C', 'FDFFB8'],    
+      particleCount: 150,      
+      shapes: ['star'],
+      origin: origin
+    });
+  } else if (linesCleared >= 2) {
+    // Multi-line clear
+    confetti({
+      particleCount: 100,
+      spread: 55,
+      origin: origin
+    });
+  } else {
+    // Single
+    confetti({
+      particleCount: 55,
+      spread: 30,
+      origin: origin
+    });
+  }
 }
 
 // Start the game - load images first using jQuery patterns
